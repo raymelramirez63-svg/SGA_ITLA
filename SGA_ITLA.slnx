@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/API/">
+    <Project Path="SGA_ITLA.WebApi/SGA_ITLA.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/Application/">
+    <Project Path="SGA_ITLA.Application/SGA_ITLA.Application.csproj" />
+  </Folder>
+  <Folder Name="/Core/">
+    <Project Path="SGA_ITLA.Domain/SGA_ITLA.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infraestructure/">
+    <Project Path="SGA_ITLA.Infraestructure/SGA_ITLA.Infraestructure.csproj" />
+    <Project Path="SGA_ITLA.Persistence/SGA_ITLA.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/IOC/">
+    <Project Path="SGA_ITLA.IOC/SGA_ITLA.IOC.csproj" />
+  </Folder>
+  <Folder Name="/Test/" />
+  <Folder Name="/Web/" />
+</Solution>
