@@ -1,3 +1,10 @@
+
+
+using Microsoft.EntityFrameworkCore;
+using SGA_ITLA.Persistence.Context;
+
+builder.Services.AddDbContext<SgaContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SgaDb")));
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

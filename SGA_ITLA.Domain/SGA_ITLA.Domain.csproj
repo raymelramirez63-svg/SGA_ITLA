@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Entities\Operaciones\" />
-    <Folder Include="Entities\Transporte\" />
     <Folder Include="Entities\Seguridad\" />
   </ItemGroup>
 

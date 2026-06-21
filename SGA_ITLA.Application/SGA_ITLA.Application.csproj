@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SGA_ITLA.Domain\SGA_ITLA.Domain.csproj" />
+    <ProjectReference Include="..\SGA_ITLA.Persistence\SGA_ITLA.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
