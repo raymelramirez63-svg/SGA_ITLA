@@ -1,21 +1,17 @@
-
-
 using Microsoft.EntityFrameworkCore;
 using SGA_ITLA.Persistence.Context;
+using SGA_ITLA.IOC;
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<SgaContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SgaDb")));
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddSgaDependencies();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
