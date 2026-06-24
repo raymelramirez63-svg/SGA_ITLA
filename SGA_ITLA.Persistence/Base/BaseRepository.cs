@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Persistence.Context;
@@ -10,79 +9,79 @@ using SGA_ITLA.Persistence.Interfaces;
 
 namespace SGA_ITLA.Persistence.Base
 {
-    public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
+    public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
     {
-        private readonly SgaContext _context;
-        private DbSet<TEntity> Entity { get; set; }
+        protected readonly SgaContext _context;
+        protected readonly DbSet<TEntity> _dbSet;
 
-        protected BaseRepository(SgaContext context)
+        public BaseRepository(SgaContext context)
         {
             _context = context;
-            Entity = _context.Set<TEntity>();
+            _dbSet = context.Set<TEntity>();
         }
 
-        public virtual async Task<OperationResult> SaveEntityAsync(TEntity entity)
+        public async Task<OperationResult> GetAllAsync()
         {
-            OperationResult result = new OperationResult();
+            var result = new OperationResult();
+            try { result.Data = await _dbSet.ToListAsync(); }
+            catch (Exception ex) { result.Success = false; result.Message = ex.Message; }
+            return result;
+        }
+
+        public async Task<OperationResult> GetByIdAsync(int id)
+        {
+            var result = new OperationResult();
             try
             {
-                Entity.Add(entity);
+                var entity = await _dbSet.FindAsync(id);
+                if (entity == null) { result.Success = false; result.Message = "No encontrado."; return result; }
+                result.Data = entity;
+            }
+            catch (Exception ex) { result.Success = false; result.Message = ex.Message; }
+            return result;
+        }
+
+        public async Task<OperationResult> SaveEntityAsync(TEntity entity)
+        {
+            var result = new OperationResult();
+            try
+            {
+                entity.CreationDate = DateTime.Now;
+                await _dbSet.AddAsync(entity);
                 await _context.SaveChangesAsync();
+                result.Data = entity;
             }
-            catch (Exception)
-            {
-                result.Success = false;
-                result.Message = "Ocurrio un error guardando los datos.";
-            }
+            catch (Exception ex) { result.Success = false; result.Message = ex.Message; }
             return result;
         }
 
-        public virtual async Task<OperationResult> UpdateEntityAsync(TEntity entity)
+        public async Task<OperationResult> UpdateEntityAsync(TEntity entity)
         {
-            OperationResult result = new OperationResult();
+            var result = new OperationResult();
             try
             {
-                Entity.Update(entity);
+                entity.ModifyDate = DateTime.Now;
+                _dbSet.Update(entity);
                 await _context.SaveChangesAsync();
+                result.Data = entity;
             }
-            catch (Exception)
-            {
-                result.Success = false;
-                result.Message = "Ocurrio un error guardando los datos.";
-            }
+            catch (Exception ex) { result.Success = false; result.Message = ex.Message; }
             return result;
         }
 
-        // Corrección aplicada: Se agrega el operador await para resolver la tarea correctamente
-        public virtual async Task<OperationResult> GetAllAsync(Expression<Func<TEntity, bool>> filter)
+        public async Task<OperationResult> DeleteEntityAsync(TEntity entity)
         {
-            OperationResult result = new OperationResult();
+            var result = new OperationResult();
             try
             {
-                var datos = await Entity.Where(filter).ToListAsync();
-                result.Data = datos;
+                entity.Deleted = true;
+                entity.DeleteDate = DateTime.Now;
+                _dbSet.Update(entity);
+                await _context.SaveChangesAsync();
+                result.Message = "Borrado lógicamente.";
             }
-            catch (Exception)
-            {
-                result.Success = false;
-                result.Message = "Ocurrio un error obteniendo los datos.";
-            }
+            catch (Exception ex) { result.Success = false; result.Message = ex.Message; }
             return result;
-        }
-
-        public virtual async Task<TEntity> GetEntityByIdAsync(int id)
-        {
-            return await Entity.FindAsync(id);
-        }
-
-        public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> filter)
-        {
-            return await Entity.AnyAsync(filter);
-        }
-
-        public virtual async Task<List<TEntity>> GetAllAsync()
-        {
-            return await Entity.ToListAsync();
         }
     }
 }

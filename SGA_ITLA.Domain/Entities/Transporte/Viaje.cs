@@ -1,37 +1,29 @@
-﻿using SGA_ITLA.Domain.Base;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+using SGA_ITLA.Domain.Base;
+using SGA_ITLA.Domain.Enums;
+using SGA_ITLA.Domain.Entities.Usuarios;
 
 namespace SGA_ITLA.Domain.Entities.Transporte
 {
-    [Table("Viajes", Schema = "Transporte")]
-    public sealed class Viaje : BaseEntity<int>
+    public class Viaje : BaseEntity
     {
-        [Key]
-        [Column("ViajeId")]
-        public override int Id { get; set; }
-
-        [Required]
         public int RutaId { get; set; }
+        public Ruta? Ruta { get; set; }
 
-        [Required]
         public int AutobusId { get; set; }
+        public Autobus? Autobus { get; set; }
 
-        [Required]
         public int ConductorId { get; set; }
+        public Usuario? Conductor { get; set; }
 
-        [Required]
-        public DateTime HorarioSalida { get; set; }
+        public DateTime HorarioSalidaPlanificada { get; set; }
+        public DateTime? HorarioSalidaReal { get; set; }
+        public DateTime? HorarioLlegadaReal { get; set; }
 
-        [Required]
-        [MaxLength(20)]
-        public string EstadoViaje { get; set; }
+        public EstadoViaje Estado { get; set; } = EstadoViaje.Programado;
+        public int CupoDisponibleActual { get; set; }
 
-        [ForeignKey("RutaId")]
-        public Ruta Ruta { get; set; }
-
-        [ForeignKey("AutobusId")]
-        public Autobus Autobus { get; set; }
+        public ICollection<Incidencia> Incidencias { get; set; } = new List<Incidencia>();
     }
 }

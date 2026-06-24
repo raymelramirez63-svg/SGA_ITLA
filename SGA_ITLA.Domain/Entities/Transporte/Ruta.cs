@@ -1,26 +1,13 @@
-﻿using SGA_ITLA.Domain.Base;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Generic;
+using SGA_ITLA.Domain.Base;
 
 namespace SGA_ITLA.Domain.Entities.Transporte
 {
-    [Table("Rutas", Schema = "Transporte")]
-    public sealed class Ruta : BaseEntity<int>
+    public class Ruta : BaseEntity
     {
-        [Key]
-        [Column("RutaId")]
-        public override int Id { get; set; }
+        public string NombreRuta { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(100)]
-        public string NombreRuta { get; set; }
-
-        [Required]
-        [MaxLength(150)]
-        public string PuntoOrigen { get; set; }
-
-        [Required]
-        [MaxLength(150)]
-        public string PuntoDestino { get; set; }
+        public ICollection<Parada> Paradas { get; set; } = new List<Parada>();
+        public ICollection<Horario> Horarios { get; set; } = new List<Horario>();
     }
 }

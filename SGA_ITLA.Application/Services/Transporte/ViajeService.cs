@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using SGA_ITLA.Application.Dtos.Transporte.Viajes;
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Persistence.Interfaces.Transporte;
+using SGA_ITLA.Persistence.Interfaces;
 
 namespace SGA_ITLA.Application.Services.Transporte
 {
@@ -23,7 +22,7 @@ namespace SGA_ITLA.Application.Services.Transporte
 
         public async Task<OperationResult> GetAllViajesActivosAsync()
         {
-            return await _viajeRepository.GetViajesActivosAsync();
+            return await _viajeRepository.GetAllAsync();
         }
 
         public async Task<OperationResult> SaveViajeAsync(SaveViajeDto saveViajeDto)
@@ -36,8 +35,8 @@ namespace SGA_ITLA.Application.Services.Transporte
                     RutaId = saveViajeDto.RutaId,
                     AutobusId = saveViajeDto.AutobusId,
                     ConductorId = saveViajeDto.ConductorId,
-                    HorarioSalida = saveViajeDto.HorarioSalida,
-                    EstadoViaje = saveViajeDto.EstadoViaje,
+                    HorarioSalidaPlanificada = saveViajeDto.HorarioSalida,
+                    Estado = saveViajeDto.EstadoViaje,
                     CreationUser = 1
                 };
                 result = await _viajeRepository.SaveEntityAsync(nuevoViaje);
