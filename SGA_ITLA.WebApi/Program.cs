@@ -1,26 +1,22 @@
 using Microsoft.EntityFrameworkCore;
-using SGA_ITLA.Persistence.Context;
-using SGA_ITLA.IOC;
+using SGA_ITLA.Infraestructure.Context;
+using SGA_ITLA.WebApi.Dependencias; 
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<SgaContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SgaDb")));
+var connectionString = builder.Configuration.GetConnectionString("SgaDb")!;
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddSgaDependencies();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+	app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

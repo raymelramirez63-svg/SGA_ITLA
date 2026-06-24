@@ -1,52 +1,50 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
-using SGA_ITLA.Application.Dtos.Transporte.Viajes;
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Persistence.Interfaces;
+using SGA_ITLA.Domain.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.Application.Services.Transporte
 {
     public class ViajeService : IViajeService
     {
-        private readonly IViajeRepository _viajeRepository;
+        private readonly IViajeRepository _viajeRepo;
         private readonly ILogger<ViajeService> _logger;
 
-        public ViajeService(IViajeRepository viajeRepository, ILogger<ViajeService> logger)
+        public ViajeService(IViajeRepository viajeRepo, ILogger<ViajeService> logger)
         {
-            _viajeRepository = viajeRepository;
+            _viajeRepo = viajeRepo;
             _logger = logger;
         }
 
-        public async Task<OperationResult> GetAllViajesActivosAsync()
+        public async Task<OperationResult> ObtenerViajesDetalladosAsync()
         {
-            return await _viajeRepository.GetAllAsync();
-        }
-
-        public async Task<OperationResult> SaveViajeAsync(SaveViajeDto saveViajeDto)
-        {
-            OperationResult result = new OperationResult();
             try
             {
-                var nuevoViaje = new Viaje
-                {
-                    RutaId = saveViajeDto.RutaId,
-                    AutobusId = saveViajeDto.AutobusId,
-                    ConductorId = saveViajeDto.ConductorId,
-                    HorarioSalidaPlanificada = saveViajeDto.HorarioSalida,
-                    Estado = saveViajeDto.EstadoViaje,
-                    CreationUser = 1
-                };
-                result = await _viajeRepository.SaveEntityAsync(nuevoViaje);
+                _logger.LogInformation("Solicitando la lista detallada de viajes a la base de datos...");
+                return await _viajeRepo.GetViajesDetalladosAsync();
             }
             catch (Exception ex)
             {
-                result.Success = false;
-                _logger.LogError(ex, "Error al guardar el viaje.");
+                _logger.LogError(ex, "Ocurrió un error crítico al intentar obtener los viajes.");
+                return new OperationResult { Success = false, Message = "Error interno al obtener viajes." };
             }
-            return result;
+        }
+
+        public async Task<OperationResult> RegistrarViajeAsync(Viaje viaje)
+        {
+            try
+            {
+                _logger.LogInformation("Intentando registrar un nuevo viaje en el sistema...");
+                return await _viajeRepo.SaveEntityAsync(viaje);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocurrió un error crítico al registrar el viaje.");
+                return new OperationResult { Success = false, Message = "Error interno al registrar el viaje." };
+            }
         }
     }
 }

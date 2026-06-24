@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SGA_ITLA.Application\SGA_ITLA.Application.csproj" />
-    <ProjectReference Include="..\SGA_ITLA.Persistence\SGA_ITLA.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

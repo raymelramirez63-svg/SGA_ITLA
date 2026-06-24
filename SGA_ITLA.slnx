@@ -10,11 +10,5 @@
   </Folder>
   <Folder Name="/Infraestructure/">
     <Project Path="SGA_ITLA.Infraestructure/SGA_ITLA.Infraestructure.csproj" />
-    <Project Path="SGA_ITLA.Persistence/SGA_ITLA.Persistence.csproj" />
   </Folder>
-  <Folder Name="/IOC/">
-    <Project Path="SGA_ITLA.IOC/SGA_ITLA.IOC.csproj" />
-  </Folder>
-  <Folder Name="/Test/" />
-  <Folder Name="/Web/" />
 </Solution>

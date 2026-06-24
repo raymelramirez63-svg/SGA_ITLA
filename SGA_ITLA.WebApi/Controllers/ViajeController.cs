@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Application.Dtos.Transporte.Viajes;
 using SGA_ITLA.Application.Interfaces.Transporte;
+using SGA_ITLA.Domain.Entities.Transporte;
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
@@ -19,7 +20,7 @@ namespace SGA_ITLA.WebApi.Controllers
         [HttpGet("GetViajesActivos")]
         public async Task<IActionResult> GetViajesActivos()
         {
-            var result = await _viajeService.GetAllViajesActivosAsync();
+            var result = await _viajeService.ObtenerViajesDetalladosAsync();
 
             if (!result.Success)
             {
@@ -37,7 +38,13 @@ namespace SGA_ITLA.WebApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _viajeService.SaveViajeAsync(saveViajeDto);
+            var viaje = new Viaje
+            {
+            
+            };
+
+         
+            var result = await _viajeService.RegistrarViajeAsync(viaje);
 
             if (!result.Success)
             {
