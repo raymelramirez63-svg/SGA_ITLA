@@ -23,7 +23,7 @@ namespace SGA_ITLA.Domain.Entities.Transporte
 
         public EstadoViaje Estado { get; set; } = EstadoViaje.Programado;
         public int CupoDisponibleActual { get; set; }
-
+        //references
         public ICollection<Incidencia> Incidencias { get; set; } = new List<Incidencia>();
     }
 }
