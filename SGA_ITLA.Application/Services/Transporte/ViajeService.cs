@@ -56,7 +56,7 @@ namespace SGA_ITLA.Application.Services.Transporte
                     var viajesActivos = (IEnumerable<Viaje>)viajesActualesResult.Data;
 
                     bool autobusOcupado = viajesActivos.Any(v =>
-                        v.AutobusId == viaje.AutobusId && (v.Estado == 1 || v.Estado == 2));
+                        v.AutobusId == viaje.AutobusId && ((int)v.Estado == 1 || (int)v.Estado == 2));
 
                     if (autobusOcupado)
                     {
@@ -66,7 +66,7 @@ namespace SGA_ITLA.Application.Services.Transporte
                     }
 
                     bool conductorOcupado = viajesActivos.Any(v =>
-                        v.ConductorId == viaje.ConductorId && (v.Estado == 1 || v.Estado == 2));
+                        v.ConductorId == viaje.ConductorId && ((int)v.Estado == 1 || (int)v.Estado == 2));
 
                     if (conductorOcupado)
                     {
@@ -76,8 +76,7 @@ namespace SGA_ITLA.Application.Services.Transporte
                     }
                 }
 
-
-                viaje.Estado = 1; 
+                viaje.Estado = (SGA_ITLA.Domain.Enums.EstadoViaje)1;
 
                 _logger.LogInformation("Reglas de negocio validadas sin conflictos. Guardando viaje...");
                 return await _viajeRepo.SaveEntityAsync(viaje);
