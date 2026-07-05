@@ -5,6 +5,7 @@ using SGA_ITLA.Domain.Interfaces;
 using SGA_ITLA.Infraestructure.Repositories;
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Application.Services.Transporte;
+using SGA_ITLA.Application.Services.Catalogo;
 
 namespace SGA_ITLA.WebApi.Dependencias
 {
@@ -12,7 +13,6 @@ namespace SGA_ITLA.WebApi.Dependencias
     {
         public static IServiceCollection AddSgaDependencies(this IServiceCollection services, string connectionString)
         {
-           
             services.AddDbContext<SgaContext>(options =>
                 options.UseSqlServer(connectionString));
 
@@ -23,7 +23,10 @@ namespace SGA_ITLA.WebApi.Dependencias
             services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
             services.AddScoped<IViajeRepository, ViajeRepository>();
 
+            
             services.AddScoped<IViajeService, ViajeService>();
+
+            services.AddScoped<CatalogoService>();
 
             return services;
         }
