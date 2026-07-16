@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
+using SGA_ITLA.Application.Interfaces.Catalogo; 
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Domain.Interfaces;
 
 namespace SGA_ITLA.Application.Services.Catalogo
 {
-    public class CatalogoService
+ 
+    public class CatalogoService : ICatalogoService
     {
         private readonly IAutobusRepository _autobusRepo;
         private readonly IRutaRepository _rutaRepo;
