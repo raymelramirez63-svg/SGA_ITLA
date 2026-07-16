@@ -31,7 +31,6 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    
     c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
     {
         {
@@ -64,11 +63,6 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dataContext = scope.ServiceProvider.GetRequiredService<SgaContext>();
-    dataContext.Database.EnsureCreated();
-}
 
 if (app.Environment.IsDevelopment())
 {

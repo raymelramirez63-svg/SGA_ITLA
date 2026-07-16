@@ -29,7 +29,6 @@ namespace SGA_ITLA.WebApi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto login)
         {
-          
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == login.Email &&
                                           u.PasswordHash == login.Password &&
@@ -37,12 +36,41 @@ namespace SGA_ITLA.WebApi.Controllers
 
             if (usuario != null)
             {
-                
                 var token = GenerarToken(usuario.Email, usuario.Rol.ToString());
                 return Ok(new { success = true, token = token, message = "Autenticación exitosa." });
             }
 
             return Unauthorized(new { success = false, message = "Credenciales incorrectas o usuario inactivo." });
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        {
+            try
+            {
+                var existe = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
+                if (existe)
+                {
+                    return BadRequest(new { success = false, message = "El correo ya está registrado." });
+                }
+
+                
+                var nuevoUsuario = new Usuario
+                {
+                    Email = dto.Email,
+                    PasswordHash = dto.Password,
+                    IsActive = true
+                };
+
+                _context.Usuarios.Add(nuevoUsuario);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Usuario registrado correctamente en la base de datos." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = $"Error de BD: {ex.InnerException?.Message ?? ex.Message}" });
+            }
         }
 
         private string GenerarToken(string email, string rol)
@@ -69,6 +97,13 @@ namespace SGA_ITLA.WebApi.Controllers
 
     public class LoginDto
     {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class RegisterDto
+    {
+     
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
