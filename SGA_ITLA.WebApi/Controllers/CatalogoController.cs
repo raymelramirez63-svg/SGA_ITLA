@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Application.Interfaces.Catalogo;
 using SGA_ITLA.Application.Dtos.Catalogo;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Enums; 
+using SGA_ITLA.Domain.Entities.Usuarios;
+using SGA_ITLA.Domain.Enums;
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
@@ -32,6 +33,50 @@ namespace SGA_ITLA.WebApi.Controllers
             return Ok(await _service.RegistrarAutobusAsync(nuevoAutobus));
         }
 
+        [HttpPost("conductor")]
+        public async Task<IActionResult> RegistrarConductor([FromBody] CreateConductorDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var nuevoConductor = new Usuario
+            {
+                IdentificacionInstitucional = dto.Identificacion,
+                NombreCompleto = dto.Nombres,
+                IsActive = dto.EstadoLaboral == 1,
+                Rol = RolUsuario.Conductor
+            };
+
+            return Ok(await _service.RegistrarConductorAsync(nuevoConductor));
+        }
+
+        [HttpPost("ruta")]
+        public async Task<IActionResult> RegistrarRuta([FromBody] CreateRutaDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var nuevaRuta = new Ruta
+            {
+                NombreRuta = dto.NombreRuta
+            };
+
+            return Ok(await _service.RegistrarRutaAsync(nuevaRuta));
+        }
+
+        [HttpPost("horario")]
+        public async Task<IActionResult> RegistrarHorario([FromBody] CreateHorarioDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var nuevoHorario = new Horario
+            {
+                RutaId = dto.RutaId,
+                DiasOperacion = dto.DiasOperacion,
+                HoraSalida = dto.HoraSalida
+            };
+
+            return Ok(await _service.RegistrarHorarioAsync(nuevoHorario));
+        }
+
         [HttpGet("rutas")]
         public async Task<IActionResult> GetRutas() => Ok(await _service.ObtenerRutasAsync());
 
@@ -46,7 +91,7 @@ namespace SGA_ITLA.WebApi.Controllers
         public IActionResult EliminarAutobus(int id)
         {
             if (id <= 0) return BadRequest(new { success = false, message = "ID inválido." });
-            return Ok(new { success = true, message = "Autobús eliminado (Soft Delete)." });
+            return Ok(new { success = true, message = "Autobús eliminado." });
         }
 
         [HttpPut("ruta")]
@@ -60,7 +105,7 @@ namespace SGA_ITLA.WebApi.Controllers
         public IActionResult EliminarRuta(int id)
         {
             if (id <= 0) return BadRequest(new { success = false, message = "ID inválido." });
-            return Ok(new { success = true, message = "Ruta eliminada (Soft Delete)." });
+            return Ok(new { success = true, message = "Ruta eliminada." });
         }
     }
 }
