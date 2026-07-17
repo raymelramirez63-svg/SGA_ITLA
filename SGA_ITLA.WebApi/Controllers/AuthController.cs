@@ -53,10 +53,16 @@ namespace SGA_ITLA.WebApi.Controllers
                     return BadRequest(new { success = false, message = "La Identificación Institucional es obligatoria." });
                 }
 
-                var existe = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
-                if (existe)
+                var existeEmail = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
+                if (existeEmail)
                 {
                     return BadRequest(new { success = false, message = "El correo ya está registrado." });
+                }
+
+                var existeIdentificacion = await _context.Usuarios.AnyAsync(u => u.IdentificacionInstitucional == dto.IdentificacionInstitucional);
+                if (existeIdentificacion)
+                {
+                    return BadRequest(new { success = false, message = $"La Identificación Institucional '{dto.IdentificacionInstitucional}' ya se encuentra registrada." });
                 }
 
                 var nuevoUsuario = new Usuario
