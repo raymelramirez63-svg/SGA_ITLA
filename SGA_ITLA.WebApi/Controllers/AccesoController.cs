@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SGA_ITLA.Application.Dtos.Transporte.Viajes; 
 using SGA_ITLA.Application.Interfaces.Transporte;
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AccesoController : ControllerBase
@@ -16,9 +19,12 @@ namespace SGA_ITLA.WebApi.Controllers
         }
 
         [HttpPost("ValidarAbordaje")]
-        public async Task<IActionResult> ValidarAbordaje(int viajeId, int estudianteId)
+        public async Task<IActionResult> ValidarAbordaje([FromBody] AbordajeDto request)
         {
-            var result = await _accesoService.ValidarAbordajeAsync(viajeId, estudianteId);
+            if (request == null) return BadRequest(new { success = false, message = "Datos incompletos." });
+
+            var result = await _accesoService.ValidarAbordajeAsync(request.ViajeId, request.UsuarioId);
+
             if (result.Success) return Ok(result);
             return BadRequest(result);
         }

@@ -1,27 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SGA_ITLA.Application.Services.Catalogo;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SGA_ITLA.Application.Interfaces.Catalogo;
+using SGA_ITLA.Application.Dtos.Catalogo;
 using SGA_ITLA.Domain.Entities.Transporte;
+using SGA_ITLA.Domain.Enums; 
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class CatalogoController : ControllerBase
     {
-        private readonly CatalogoService _service;
+        private readonly ICatalogoService _service;
 
-        public CatalogoController(CatalogoService service) => _service = service;
+        public CatalogoController(ICatalogoService service) => _service = service;
 
         [HttpPost("autobus")]
-        public async Task<IActionResult> RegistrarAutobus([FromBody] Autobus autobus)
-            => Ok(await _service.RegistrarAutobusAsync(autobus));
+        public async Task<IActionResult> RegistrarAutobus([FromBody] CreateAutobusDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var nuevoAutobus = new Autobus
+            {
+                Placa = dto.Placa,
+                CapacidadMaxima = dto.CapacidadMaxima,
+                EstadoOperativo = (EstadoAutobus)dto.EstadoOperativo
+            };
+
+            return Ok(await _service.RegistrarAutobusAsync(nuevoAutobus));
+        }
 
         [HttpGet("rutas")]
-        public async Task<IActionResult> GetRutas()
-            => Ok(await _service.ObtenerRutasAsync());
+        public async Task<IActionResult> GetRutas() => Ok(await _service.ObtenerRutasAsync());
 
-   
         [HttpPut("autobus")]
         public IActionResult ActualizarAutobus([FromBody] Autobus autobus)
         {

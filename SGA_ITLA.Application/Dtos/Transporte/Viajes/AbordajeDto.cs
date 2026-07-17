@@ -9,8 +9,8 @@ namespace SGA_ITLA.Application.Dtos.Transporte.Viajes
         public int ViajeId { get; set; }
 
         [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Debe especificar la identificación del estudiante.")]
-        public int EstudianteId { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Debe especificar la identificación del usuario.")]
+        public int UsuarioId { get; set; }
 
         [Required(ErrorMessage = "El método de acceso (Ticket/Tarjeta) es obligatorio.")]
         public string? MetodoAcceso { get; set; }

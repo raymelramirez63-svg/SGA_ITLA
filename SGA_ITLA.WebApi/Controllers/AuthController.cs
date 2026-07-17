@@ -48,24 +48,31 @@ namespace SGA_ITLA.WebApi.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(dto.IdentificacionInstitucional))
+                {
+                    return BadRequest(new { success = false, message = "La Identificación Institucional es obligatoria." });
+                }
+
                 var existe = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
                 if (existe)
                 {
                     return BadRequest(new { success = false, message = "El correo ya está registrado." });
                 }
 
-                
                 var nuevoUsuario = new Usuario
                 {
+                    IdentificacionInstitucional = dto.IdentificacionInstitucional,
+                    NombreCompleto = dto.NombreCompleto,
                     Email = dto.Email,
                     PasswordHash = dto.Password,
+                    Rol = dto.Rol,
                     IsActive = true
                 };
 
                 _context.Usuarios.Add(nuevoUsuario);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { success = true, message = "Usuario registrado correctamente en la base de datos." });
+                return Ok(new { success = true, message = "Usuario registrado correctamente cumpliendo RF-USU-01." });
             }
             catch (Exception ex)
             {
@@ -103,8 +110,10 @@ namespace SGA_ITLA.WebApi.Controllers
 
     public class RegisterDto
     {
-     
+        public string IdentificacionInstitucional { get; set; } = string.Empty;
+        public string NombreCompleto { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public RolUsuario Rol { get; set; }
     }
 }

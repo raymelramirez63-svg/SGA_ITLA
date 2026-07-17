@@ -6,9 +6,9 @@ namespace SGA_ITLA.Application.Services.Transporte
 {
     public class AccesoService : IAccesoService
     {
-        public async Task<OperationResult> ValidarAbordajeAsync(int viajeId, int estudianteId)
+        public async Task<OperationResult> ValidarAbordajeAsync(int viajeId, int usuarioId)
         {
-           
+
             return await Task.FromResult(new OperationResult
             {
                 Success = true,

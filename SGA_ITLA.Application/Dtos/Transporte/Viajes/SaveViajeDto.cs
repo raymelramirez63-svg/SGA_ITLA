@@ -19,7 +19,9 @@ namespace SGA_ITLA.Application.Dtos.Transporte.Viajes
         [Range(1, int.MaxValue, ErrorMessage = "Debe especificar un ID de conductor válido.")]
         public int ConductorId { get; set; }
 
-        [Required(ErrorMessage = "El horario planificado es obligatorio.")]
-        public DateTime HorarioSalidaPlanificada { get; set; }
+      
+        [Required(ErrorMessage = "El horario es obligatorio.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe especificar un ID de horario válido.")]
+        public int HorarioId { get; set; }
     }
 }

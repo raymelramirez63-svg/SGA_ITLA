@@ -12,3 +12,5 @@ namespace SGA_ITLA.Domain.Entities.Transporte
         public TimeSpan HoraSalida { get; set; }
     }
 }
+
+
