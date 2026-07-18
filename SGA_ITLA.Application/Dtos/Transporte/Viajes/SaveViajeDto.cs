@@ -5,7 +5,6 @@ namespace SGA_ITLA.Application.Dtos.Transporte.Viajes
 {
     public class SaveViajeDto
     {
-        public int Id { get; set; }
 
         [Required(ErrorMessage = "La ruta es obligatoria.")]
         [Range(1, int.MaxValue, ErrorMessage = "Debe especificar un ID de ruta válido.")]
@@ -19,7 +18,6 @@ namespace SGA_ITLA.Application.Dtos.Transporte.Viajes
         [Range(1, int.MaxValue, ErrorMessage = "Debe especificar un ID de conductor válido.")]
         public int ConductorId { get; set; }
 
-      
         [Required(ErrorMessage = "El horario es obligatorio.")]
         [Range(1, int.MaxValue, ErrorMessage = "Debe especificar un ID de horario válido.")]
         public int HorarioId { get; set; }

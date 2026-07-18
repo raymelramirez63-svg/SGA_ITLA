@@ -3,7 +3,7 @@ using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Domain.Enums;
-using SGA_ITLA.Domain.Interfaces; 
+using SGA_ITLA.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -12,7 +12,6 @@ namespace SGA_ITLA.Application.Services.Transporte
 {
     public class ViajeService : IViajeService
     {
-   
         private readonly IViajeRepository _viajeRepo;
         private readonly ILogger<ViajeService> _logger;
 
@@ -25,7 +24,6 @@ namespace SGA_ITLA.Application.Services.Transporte
         public async Task<OperationResult> ObtenerViajesDetalladosAsync()
         {
             _logger.LogInformation("Solicitando listado de viajes detallados.");
-            // Llamamos al repositorio que arreglamos anteriormente
             return await _viajeRepo.GetViajesDetalladosAsync();
         }
 
@@ -35,15 +33,19 @@ namespace SGA_ITLA.Application.Services.Transporte
             {
                 _logger.LogInformation("Validando reglas de negocio RN-OPE para nuevo viaje.");
 
-            
                 viaje.Estado = EstadoViaje.Programado;
 
                 var resultadoGuardado = await _viajeRepo.SaveEntityAsync(viaje);
 
                 if (resultadoGuardado.Success)
                 {
-                    _logger.LogInformation("Viaje planificado exitosamente en la base de datos.");
-                    return new OperationResult { Success = true, Message = "Viaje planificado exitosamente." };
+                    _logger.LogInformation($"Viaje planificado exitosamente en la base de datos con ID {viaje.Id}.");
+
+                    return new OperationResult
+                    {
+                        Success = true,
+                        Message = $"Viaje planificado exitosamente. El ID asignado es: {viaje.Id}"
+                    };
                 }
 
                 return resultadoGuardado;
@@ -61,7 +63,6 @@ namespace SGA_ITLA.Application.Services.Transporte
             {
                 _logger.LogInformation($"Validando acceso RN-ACC para estudiante {estudianteId} en viaje {viajeId}");
 
-                
                 var estadoViajeActual = EstadoViaje.EnCurso;
                 int cupoDisponible = 40;
                 bool tieneAutorizacionActiva = true;

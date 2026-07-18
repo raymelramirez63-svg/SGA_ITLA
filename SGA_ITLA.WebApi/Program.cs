@@ -1,20 +1,22 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SGA_ITLA.WebApi.Dependencias;
+using SGA_ITLA.WebApi.Middlewares;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SGA_ITLA.Infraestructure.Context;
-using SGA_ITLA.WebApi.Dependencias;
-using SGA_ITLA.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
 var connectionString = builder.Configuration.GetConnectionString("SgaDb")!;
 builder.Services.AddSgaDependencies(connectionString);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => {
+
+builder.Services.AddSwaggerGen(c =>
+{
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SGA_ITLA API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -28,14 +30,12 @@ builder.Services.AddSwaggerGen(c => {
 
     c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecuritySchemeReference("Bearer"),
-            new List<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", doc)] = new List<string>()
     });
 });
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "EstaEsUnaClaveSecretaMuyLargaYSeguraParaSGAITLA2026";
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -52,6 +52,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -66,4 +67,5 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();
