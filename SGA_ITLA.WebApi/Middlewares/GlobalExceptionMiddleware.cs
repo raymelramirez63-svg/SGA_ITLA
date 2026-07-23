@@ -23,7 +23,6 @@ namespace SGA_ITLA.WebApi.Middlewares
             }
             catch (Exception ex)
             {
-                // Si EXPLOTA algo en cualquier parte del sistema, lo atrapa aquí
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -33,12 +32,11 @@ namespace SGA_ITLA.WebApi.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            // Formateo de la respuesta JSON para el error
             var response = new
             {
                 success = false,
                 message = "Ha ocurrido un error interno en el servidor de transporte.",
-                detalle = exception.Message // Muestra el error real 
+                detalle = exception.Message 
             };
 
             var jsonResponse = JsonSerializer.Serialize(response);

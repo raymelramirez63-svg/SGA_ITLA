@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Entities.Usuarios; // Asegúrate de que apunte a donde tienes tu Usuario.cs
+using SGA_ITLA.Domain.Entities.Usuarios; 
 
 namespace SGA_ITLA.Application.Interfaces.Catalogo
 {

@@ -16,11 +16,11 @@ namespace SGA_ITLA.WebApi.Dependencias
     {
         public static IServiceCollection AddSgaDependencies(this IServiceCollection services, string connectionString)
         {
-           
+
             services.AddDbContext<SgaContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            
+
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IAutorizacionRepository, AutorizacionRepository>();
             services.AddScoped<IAutobusRepository, AutobusRepository>();
@@ -28,7 +28,9 @@ namespace SGA_ITLA.WebApi.Dependencias
             services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
             services.AddScoped<IViajeRepository, ViajeRepository>();
 
-         
+            services.AddScoped<IHorarioRepository, HorarioRepository>();
+
+
             services.AddScoped<ICatalogoService, CatalogoService>();
             services.AddScoped<IViajeService, ViajeService>();
             services.AddScoped<IAccesoService, AccesoService>();
