@@ -11,4 +11,5 @@
   <Folder Name="/Infraestructure/">
     <Project Path="SGA_ITLA.Infraestructure/SGA_ITLA.Infraestructure.csproj" />
   </Folder>
+  <Project Path="SGA_ITLA.WebMVC/SGA_ITLA.WebMVC.csproj" Id="0b9e0aff-078b-4f30-89d8-e2804a25a238" />
 </Solution>
