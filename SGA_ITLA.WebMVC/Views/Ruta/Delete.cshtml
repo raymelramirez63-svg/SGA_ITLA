@@ -1,0 +1,25 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Ruta
+@{
+    ViewData["Title"] = "Eliminar Ruta";
+}
+
+<div class="container mt-5">
+    <h3 class="text-danger fw-bold">Confirmar Desactivación</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-danger" style="max-width: 500px;">
+        <h5 class="text-center mb-3">¿Estás seguro que deseas desactivar esta ruta?</h5>
+
+        <div class="bg-light p-3 rounded mb-4 text-center">
+            <h4 class="text-primary m-0">@Model.NombreRuta</h4>
+            <small class="text-muted">ID: #@Model.Id</small>
+        </div>
+
+        <p class="text-muted small text-center">Esta acción marcará la ruta como eliminada lógicamente para mantener la integridad de auditorías pasadas.</p>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger w-100 fw-bold">Sí, Desactivar Ruta</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

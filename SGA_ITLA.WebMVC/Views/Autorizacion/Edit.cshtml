@@ -1,0 +1,43 @@
+﻿@model SGA_ITLA.Domain.Entities.Autorizaciones.Autorizacion
+@{
+    ViewData["Title"] = "Editar Autorización";
+}
+
+<div class="container mt-5">
+    <h3 class="text-warning fw-bold">Gestionar Autorización</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="UsuarioId" />
+
+            <div class="mb-3">
+                <label asp-for="Tipo" class="form-label fw-bold">Tipo de Autorización</label>
+                <select asp-for="Tipo" class="form-select">
+                    <option value="TicketMensual">Ticket Mensual</option>
+                    <option value="TarjetaRecargable">Tarjeta Recargable</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="SaldoDisponible" class="form-label fw-bold">Saldo Disponible (Si es Tarjeta)</label>
+                <input asp-for="SaldoDisponible" type="number" step="0.01" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FechaFinVigencia" class="form-label fw-bold">Fecha Límite (Si es Ticket)</label>
+                <input asp-for="FechaFinVigencia" type="date" class="form-control"
+                       value="@(Model.FechaFinVigencia.HasValue ? Model.FechaFinVigencia.Value.ToString("yyyy-MM-dd") : "")" />
+            </div>
+
+            <div class="form-check form-switch mb-4">
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" id="flexSwitchCheckChecked">
+                <label class="form-check-label fw-bold" for="flexSwitchCheckChecked">Autorización Activa</label>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold">Guardar Cambios</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

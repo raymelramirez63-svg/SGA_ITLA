@@ -1,42 +1,49 @@
-﻿@model SGA_ITLA.WebMVC.Models.LoginViewModel
-
-@{
+﻿@{
     ViewData["Title"] = "Iniciar Sesión";
+    Layout = null; // Oculta la barra de navegación en esta pantalla
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h2 class="text-primary fw-bold">SGA Transporte</h2>
-                    <p class="text-muted">Ingresa tus credenciales para continuar</p>
-                </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SGA Transporte</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body class="bg-dark d-flex align-items-center justify-content-center" style="height: 100vh;">
 
-                <form asp-action="Login" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                    <div class="form-group mb-3">
-                        <label asp-for="Correo" class="control-label fw-bold mb-1"></label>
-                        <input asp-for="Correo" class="form-control form-control-lg" placeholder="ejemplo@correo.com" />
-                        <span asp-validation-for="Correo" class="text-danger"></span>
-                    </div>
-
-                    <div class="form-group mb-4">
-                        <label asp-for="Clave" class="control-label fw-bold mb-1"></label>
-                        <input asp-for="Clave" class="form-control form-control-lg" placeholder="********" />
-                        <span asp-validation-for="Clave" class="text-danger"></span>
-                    </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">Iniciar Sesión</button>
-                    </div>
-                </form>
-            </div>
+    <div class="card shadow-lg p-5 rounded-4 border-0" style="width: 100%; max-width: 450px;">
+        <div class="text-center mb-4">
+            <h2 class="text-success fw-bold m-0">SGA ITLA</h2>
+            <p class="text-muted mt-1">Sistema Logístico de Transporte</p>
+            <hr />
+            <h5 class="fw-bold text-dark mt-3">Acceso Seguro</h5>
         </div>
-    </div>
-</div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+        <form asp-controller="Auth" asp-action="Login" method="post">
+
+            <!-- Mostrará errores como "Credenciales incorrectas" aquí -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger p-2 text-center small fw-bold mb-3">
+                    @Html.ValidationSummary(true, "")
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Correo Institucional</label>
+                <input type="email" name="email" class="form-control" placeholder="ejemplo@itla.edu.do" required />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Contraseña</label>
+                <input type="password" name="password" class="form-control" placeholder="********" required />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 fw-bold py-2">Iniciar Sesión</button>
+        </form>
+    </div>
+
+</body>
+</html>

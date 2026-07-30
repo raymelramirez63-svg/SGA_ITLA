@@ -1,0 +1,25 @@
+﻿@model SGA_ITLA.Domain.Entities.Autorizaciones.Autorizacion
+@{
+    ViewData["Title"] = "Anular Autorización";
+}
+
+<div class="container mt-5">
+    <h3 class="text-danger fw-bold">Anulación de Pase</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-danger" style="max-width: 500px;">
+        <h5 class="text-center mb-3">¿Anular esta autorización del sistema?</h5>
+
+        <div class="bg-light p-3 rounded mb-4 text-center">
+            <h4 class="text-primary m-0">@Model.Tipo</h4>
+            <small class="text-muted">Asignada al Usuario #@Model.UsuarioId</small>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger w-100 fw-bold">Sí, Anular Definitivamente</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+

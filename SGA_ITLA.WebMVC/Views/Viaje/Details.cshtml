@@ -1,0 +1,33 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Viaje
+@{
+    ViewData["Title"] = "Detalles del Viaje";
+}
+
+<div class="container mt-5">
+    <h3 class="text-info fw-bold">Hoja de Ruta del Viaje</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 600px;">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">ID de Viaje:</dt>
+            <dd class="col-sm-8 fw-bold">#@Model.Id</dd>
+
+            <dt class="col-sm-4 text-muted">Ruta y Salida:</dt>
+            <dd class="col-sm-8 text-primary fw-bold">Ruta #@Model.RutaId a las @Model.HorarioSalidaPlanificada.ToString("HH:mm")</dd>
+
+            <dt class="col-sm-4 text-muted">Recursos:</dt>
+            <dd class="col-sm-8">Bus #@Model.AutobusId | Cond: #@Model.ConductorId</dd>
+
+            <dt class="col-sm-4 text-muted">Cupo Disponible:</dt>
+            <dd class="col-sm-8">@Model.CupoDisponibleActual asientos</dd>
+
+            <dt class="col-sm-4 text-muted">Estado:</dt>
+            <dd class="col-sm-8">
+                <span class="badge bg-dark fs-6">@Model.Estado</span>
+            </dd>
+        </dl>
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-secondary w-100">Volver al Panel</a>
+        </div>
+    </div>
+</div>

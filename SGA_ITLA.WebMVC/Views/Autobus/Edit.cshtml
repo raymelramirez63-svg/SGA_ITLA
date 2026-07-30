@@ -1,14 +1,15 @@
-@model SGA_ITLA.Application.Dtos.Catalogo.CreateAutobusDto
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Autobus
 @{
-    ViewData["Title"] = "Registrar Autobús";
+    ViewData["Title"] = "Editar Autobús";
 }
 
 <div class="container mt-4">
-    <h3>Registrar Nuevo Autobús</h3>
+    <h3>Editar Autobús</h3>
     <hr />
     <div class="card shadow-sm p-4" style="max-width: 500px;">
-        <form asp-action="Create" method="post">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
 
             <div class="mb-3">
                 <label asp-for="Placa" class="form-label fw-bold"></label>
@@ -18,17 +19,21 @@
 
             <div class="mb-3">
                 <label asp-for="CapacidadMaxima" class="form-label fw-bold">Capacidad Máxima</label>
-                <input asp-for="CapacidadMaxima" type="number" class="form-control" />
+                <input asp-for="CapacidadMaxima" class="form-control" />
                 <span asp-validation-for="CapacidadMaxima" class="text-danger"></span>
             </div>
 
             <div class="mb-4">
-                <label asp-for="EstadoOperativo" class="form-label fw-bold">Estado Operativo (1=Activo, 2=Fuera, 3=Mantenimiento)</label>
-                <input asp-for="EstadoOperativo" type="number" class="form-control" />
+                <label class="form-label fw-bold">Estado Operativo</label>
+                <select asp-for="EstadoOperativo" class="form-select">
+                    <option value="Activo">Activo</option>
+                    <option value="FueraDeServicio">Fuera de Servicio</option>
+                    <option value="EnMantenimiento">En Mantenimiento</option>
+                </select>
                 <span asp-validation-for="EstadoOperativo" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100">Guardar</button>
+            <button type="submit" class="btn btn-warning w-100">Actualizar</button>
             <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
         </form>
     </div>

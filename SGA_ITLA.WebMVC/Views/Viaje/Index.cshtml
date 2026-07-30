@@ -1,0 +1,63 @@
+﻿@model IEnumerable<SGA_ITLA.Domain.Entities.Transporte.Viaje>
+@{
+    ViewData["Title"] = "Gestión Operativa de Viajes";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h3 class="text-primary m-0 fw-bold">Planificación de Viajes</h3>
+
+        @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
+        {
+            <a asp-action="Create" class="btn btn-success px-4 text-white fw-bold">+ Planificar Nuevo Viaje</a>
+        }
+    </div>
+
+    <table class="table table-hover align-middle shadow-sm rounded-3 overflow-hidden">
+        <thead class="table-dark">
+            <tr>
+                <th>Ruta</th>
+                <th>Autobús</th>
+                <th>Conductor</th>
+                <th>Estado</th>
+                <th class="text-end pe-3">Control</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@(item.Ruta != null ? item.Ruta.NombreRuta : "ID: " + item.RutaId)</td>
+                        <td>@(item.Autobus != null ? item.Autobus.Placa : "ID: " + item.AutobusId)</td>
+                        <td>@(item.Conductor != null ? item.Conductor.NombreCompleto : "ID: " + item.ConductorId)</td>
+                        <td>
+                            <span class="badge @(item.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.Programado ? "bg-primary" :
+                                                                               item.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.EnCurso ? "bg-warning text-dark" :
+                                                                               item.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.Completado ? "bg-success" : "bg-danger")">
+                                @item.Estado
+                            </span>
+                        </td>
+                        <td class="text-end pe-3">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Detalles</a>
+
+                            @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador") || User.IsInRole("Conductor"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Estado</a>
+                            }
+                            @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
+                            {
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">X</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5" class="text-center py-4 text-muted">No hay viajes programados actualmente.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

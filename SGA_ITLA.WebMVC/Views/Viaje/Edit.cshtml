@@ -1,0 +1,38 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Viaje
+@{
+    ViewData["Title"] = "Actualizar Estado";
+}
+
+<div class="container mt-5">
+    <h3 class="text-warning fw-bold">Control Operativo del Viaje</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="RutaId" />
+            <input type="hidden" asp-for="AutobusId" />
+            <input type="hidden" asp-for="ConductorId" />
+
+            <div class="bg-light p-3 rounded text-center mb-4">
+                <h5 class="m-0 text-primary">Viaje #@Model.Id</h5>
+                <small>Actualice el estado según el ciclo del viaje.</small>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Estado" class="form-label fw-bold">Estado Actual del Viaje</label>
+                <select asp-for="Estado" class="form-select">
+                    <option value="Programado">1 - Programado (En Espera)</option>
+                    <option value="EnCurso">2 - En Curso (Iniciado)</option>
+                    <option value="Completado">3 - Completado (Finalizado)</option>
+                    <option value="Retrasado">4 - Retrasado</option>
+                    <option value="Cancelado">5 - Cancelado</option>
+                </select>
+                <span asp-validation-for="Estado" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold">Aplicar Transición</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

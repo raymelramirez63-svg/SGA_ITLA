@@ -1,95 +1,65 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using SGA_ITLA.WebMVC.Models;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.EntityFrameworkCore;
+using SGA_ITLA.Infraestructure.Context;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly SgaContext _context;
 
-        public AuthController(IHttpClientFactory httpClientFactory)
+        public AuthController(SgaContext context)
         {
-            _httpClientFactory = httpClientFactory;
+            _context = context;
         }
 
-        // GET: Muestra la pantalla de Login
+        [HttpGet]
         public IActionResult Login()
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
-        // POST: Envía las credenciales a la API
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(string email, string password)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password && u.IsActive);
 
-            var client = _httpClientFactory.CreateClient("SgaApi");
-
-            var authData = new { email = model.Correo, password = model.Clave };
-            var jsonContent = new StringContent(JsonSerializer.Serialize(authData), Encoding.UTF8, "application/json");
-
-            // Llamada al endpoint de la API
-            var response = await client.PostAsync("api/Auth/login", jsonContent);
-
-            if (response.IsSuccessStatusCode)
+            if (usuario == null)
             {
-                var content = await response.Content.ReadAsStringAsync();
-
-                // Extraemos el token del JSON que devuelve la API
-                using var jsonDoc = JsonDocument.Parse(content);
-
-                var token = jsonDoc.RootElement.GetProperty("token").GetString()!;
-
-                // Guardamos el token en las Cookies del navegador
-                await IniciarSesionEnMVC(token);
-
-                // Redirigir al inicio o al catálogo
-                return RedirectToAction("Index", "Home");
+                ModelState.AddModelError("", "Credenciales incorrectas o cuenta suspendida.");
+                return View();
             }
 
-            ModelState.AddModelError(string.Empty, "Credenciales incorrectas o error de conexión con la API.");
-            return View(model);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Name, usuario.NombreCompleto),
+                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim(ClaimTypes.Role, usuario.Rol.ToString())
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity));
+
+            return RedirectToAction("Index", "Home");
         }
 
-        // GET: Cerrar sesión
+        [HttpGet]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Auth");
-        }
-
-        // Método privado que desencripta el JWT y crea la sesión en MVC
-        private async Task IniciarSesionEnMVC(string token)
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
-
-            var claims = new List<Claim>();
-            claims.AddRange(jwt.Claims);
-
-            // Guardamos el token original en un Claim para usarlo luego en otras peticiones
-            claims.Add(new Claim("jwt_token", token));
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = jwt.ValidTo // La sesión web expira exactamente cuando expira el token de la API
-            };
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
         }
     }
 }

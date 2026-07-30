@@ -1,0 +1,23 @@
+﻿@model SGA_ITLA.Domain.Entities.Usuarios.Usuario
+@{
+    ViewData["Title"] = "Suspender Usuario";
+}
+
+<div class="container mt-5">
+    <h3 class="text-danger fw-bold">Suspender Acceso</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-danger" style="max-width: 500px;">
+        <h5 class="text-center mb-3">¿Revocar acceso al sistema para este usuario?</h5>
+
+        <div class="bg-light p-3 rounded mb-4 text-center">
+            <h4 class="text-primary m-0">@Model.NombreCompleto</h4>
+            <small class="text-muted">@Model.Email | Rol: @Model.Rol</small> 
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger w-100 fw-bold">Sí, Suspender Cuenta</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

@@ -1,53 +1,46 @@
-@model IEnumerable<SGA_ITLA.WebMVC.Models.AutobusViewModel>
-
+@model IEnumerable<SGA_ITLA.Domain.Entities.Transporte.Autobus>
 @{
     ViewData["Title"] = "Catálogo de Autobuses";
 }
 
-<h1>Catálogo de Autobuses</h1>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold">Catálogo de Flota</h3>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
+        <!-- REGLA DEL AUDIO: SOLO EL ADMIN VE EL BOTON DE CREAR -->
+        @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
+        {
+            <a asp-action="Create" class="btn btn-primary">+ Registrar Autobús</a>
+        }
+    </div>
 
-<div class="table-responsive shadow-sm rounded p-3 bg-white">
-
-    <table class="table table-hover">
-        <thead>
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
             <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.Placa)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.CapacidadMaxima)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.EstadoOperativo)
-                </th>
-                <th></th>
+                <th>Placa</th>
+                <th>Capacidad Máxima</th>
+                <th>Estado Operativo</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
                 <tr>
+                    <td>@item.Placa</td>
+                    <td>@item.CapacidadMaxima pasajeros</td>
+                    <td>@item.EstadoOperativo</td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.Placa)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CapacidadMaxima)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.EstadoOperativo)
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Detalles</a>
+
+                        @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                        }
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-
 </div>

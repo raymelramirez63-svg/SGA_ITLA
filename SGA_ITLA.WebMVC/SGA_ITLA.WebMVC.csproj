@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SGA_ITLA.Application\SGA_ITLA.Application.csproj" />
+    <ProjectReference Include="..\SGA_ITLA.Domain\SGA_ITLA.Domain.csproj" />
+    <ProjectReference Include="..\SGA_ITLA.Infraestructure\SGA_ITLA.Infraestructure.csproj" />
   </ItemGroup>
 
 </Project>

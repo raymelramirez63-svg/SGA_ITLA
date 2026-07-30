@@ -1,0 +1,32 @@
+﻿@model SGA_ITLA.Domain.Entities.Autorizaciones.Autorizacion
+@{
+    ViewData["Title"] = "Detalle Autorización";
+}
+
+<div class="container mt-5">
+    <h3 class="text-info fw-bold">Estado de Autorización</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <dl class="row mb-0">
+            <dt class="col-sm-5 text-muted">ID Sistema:</dt>
+            <dd class="col-sm-7 fw-bold">#@Model.Id</dd>
+
+            <dt class="col-sm-5 text-muted">Beneficiario:</dt>
+            <dd class="col-sm-7 text-primary fw-bold">Usuario #@Model.UsuarioId</dd>
+
+            <dt class="col-sm-5 text-muted">Tipo Pase:</dt>
+            <dd class="col-sm-7"><span class="badge bg-secondary">@Model.Tipo</span></dd>
+
+            <dt class="col-sm-5 text-muted">Estado Actual:</dt>
+            <dd class="col-sm-7">
+                <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger")">
+                    @(Model.IsActive ? "Operativa" : "Bloqueada")
+                </span>
+            </dd>
+        </dl>
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-secondary w-100">Volver al Panel</a>
+        </div>
+    </div>
+</div>

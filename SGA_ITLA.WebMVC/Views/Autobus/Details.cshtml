@@ -1,0 +1,30 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Autobus
+@{
+    ViewData["Title"] = "Detalles del Autobús";
+}
+
+<div class="container mt-4">
+    <h3>Detalles de la Unidad</h3>
+    <hr />
+    <div class="card shadow-sm p-4" style="max-width: 500px;">
+        <dl class="row">
+            <dt class="col-sm-5">ID Interno:</dt>
+            <dd class="col-sm-7">@Model.Id</dd>
+
+            <dt class="col-sm-5">Placa:</dt>
+            <dd class="col-sm-7 fw-bold">@Model.Placa</dd>
+
+            <dt class="col-sm-5">Capacidad:</dt>
+            <dd class="col-sm-7">@Model.CapacidadMaxima pasajeros</dd>
+
+            <dt class="col-sm-5">Estado Actual:</dt>
+            <dd class="col-sm-7">
+                <span class="badge bg-primary">@Model.EstadoOperativo</span>
+            </dd>
+
+            <dt class="col-sm-5">Fecha Registro:</dt>
+            <dd class="col-sm-7">@Model.CreationDate.ToString("dd/MM/yyyy")</dd>
+        </dl>
+        <a asp-action="Index" class="btn btn-secondary mt-3">Volver al Listado</a>
+    </div>
+</div>

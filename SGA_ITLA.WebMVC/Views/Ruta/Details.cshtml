@@ -1,0 +1,25 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Ruta
+@{
+    ViewData["Title"] = "Detalles de la Ruta";
+}
+
+<div class="container mt-5">
+    <h3 class="text-info fw-bold">Detalles de la Ruta</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">ID de Ruta:</dt>
+            <dd class="col-sm-8 fw-bold">#@Model.Id</dd>
+
+            <dt class="col-sm-4 text-muted">Nombre:</dt>
+            <dd class="col-sm-8 text-primary fw-bold">@Model.NombreRuta</dd>
+
+            <dt class="col-sm-4 text-muted">Fecha Registro:</dt>
+            <dd class="col-sm-8">@Model.CreationDate.ToString("dd/MM/yyyy HH:mm")</dd>
+        </dl>
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-secondary w-100">Volver al Listado</a>
+        </div>
+    </div>
+</div>

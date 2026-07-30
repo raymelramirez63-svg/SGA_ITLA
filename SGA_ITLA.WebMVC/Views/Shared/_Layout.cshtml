@@ -1,52 +1,72 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SGA_ITLA.WebMVC</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - SGA ITLA</title>
+b    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SGA_ITLA.WebMVC.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="bg-light d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SGA_ITLA.WebMVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <!-- Navbar oscura estilo SIGEBI / SkyFlow -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-4 py-3">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand fw-bold fs-4 text-primary" asp-controller="Home" asp-action="Index">
+                    🚌 SGA-ITLA
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Autobus" asp-action="Index">Catálogo de Autobuses</a>
+                    <!-- PESTAÑAS DE LOS 5 MÓDULOS -->
+                    <ul class="navbar-nav flex-grow-1 ms-4">
+                        <li class="nav-item me-2">
+                            <a class="nav-link fs-6" asp-controller="Autobus" asp-action="Index">Catálogo de Autobuses</a>
                         </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link fs-6" asp-controller="Ruta" asp-action="Index">Rutas</a>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link fs-6" asp-controller="Viaje" asp-action="Index">Viajes</a>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link fs-6" asp-controller="Horario" asp-action="Index">Horarios</a>
+                        </li>
+                    </ul>
 
+                    <!-- SECCIÓN DE USUARIO -->
+                    <ul class="navbar-nav align-items-center">
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            <li class="nav-item me-3">
+                                <span class="text-light opacity-75">Sesión activa</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-danger btn-sm px-4 rounded-pill fw-bold" asp-controller="Auth" asp-action="Logout">
+                                    Cerrar Sesión
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3 flex-grow-1">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - SGA_ITLA.WebMVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="border-top footer text-muted bg-white mt-auto py-3">
+        <div class="container text-center fw-semibold">
+            &copy; 2026 - Sistema de Gestión de Autobuses ITLA (SGA)
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

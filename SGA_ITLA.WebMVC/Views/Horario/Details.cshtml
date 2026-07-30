@@ -1,0 +1,28 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Horario
+@{
+    ViewData["Title"] = "Detalles del Horario";
+}
+
+<div class="container mt-5">
+    <h3 class="text-info fw-bold">Detalles de Operación</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <dl class="row mb-0">
+            <dt class="col-sm-5 text-muted">ID Interno:</dt>
+            <dd class="col-sm-7 fw-bold">#@Model.Id</dd>
+
+            <dt class="col-sm-5 text-muted">Ruta Asociada:</dt>
+            <dd class="col-sm-7 text-primary fw-bold">Ruta #@Model.RutaId</dd>
+
+            <dt class="col-sm-5 text-muted">Días:</dt>
+            <dd class="col-sm-7">@Model.DiasOperacion</dd>
+
+            <dt class="col-sm-5 text-muted">Hora Programada:</dt>
+            <dd class="col-sm-7"><span class="badge bg-secondary">@Model.HoraSalida.ToString(@"hh\:mm")</span></dd>
+        </dl>
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-secondary w-100">Volver al Listado</a>
+        </div>
+    </div>
+</div>

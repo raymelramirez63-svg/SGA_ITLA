@@ -1,0 +1,49 @@
+﻿@model SGA_ITLA.Application.Dtos.Transporte.Viajes.SaveViajeDto
+@{
+    ViewData["Title"] = "Planificar Viaje";
+}
+
+<div class="container mt-5">
+    <h3 class="text-success fw-bold">Planificación Estratégica de Viaje</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 600px;">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="RutaId" class="form-label fw-bold">Ruta a Cubrir</label>
+                <select asp-for="RutaId" class="form-select" asp-items="ViewBag.Rutas">
+                    <option value="">-- Seleccionar Ruta --</option>
+                </select>
+                <span asp-validation-for="RutaId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="HorarioId" class="form-label fw-bold">Horario Base</label>
+                <select asp-for="HorarioId" class="form-select" asp-items="ViewBag.Horarios">
+                    <option value="">-- Seleccionar Horario --</option>
+                </select>
+                <span asp-validation-for="HorarioId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AutobusId" class="form-label fw-bold">Unidad Asignada (Autobuses Activos)</label>
+                <select asp-for="AutobusId" class="form-select" asp-items="ViewBag.Autobuses">
+                    <option value="">-- Seleccionar Autobús --</option>
+                </select>
+                <span asp-validation-for="AutobusId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="ConductorId" class="form-label fw-bold">Operador (Conductor)</label>
+                <select asp-for="ConductorId" class="form-select" asp-items="ViewBag.Conductores">
+                    <option value="">-- Seleccionar Conductor --</option>
+                </select>
+                <span asp-validation-for="ConductorId" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 fw-bold">Confirmar Planificación</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

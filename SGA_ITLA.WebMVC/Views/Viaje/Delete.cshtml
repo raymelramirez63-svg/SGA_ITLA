@@ -1,0 +1,23 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Viaje
+@{
+    ViewData["Title"] = "Cancelar Viaje";
+}
+
+<div class="container mt-5">
+    <h3 class="text-danger fw-bold">Anular Programación de Viaje</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-danger" style="max-width: 500px;">
+        <h5 class="text-center mb-3">¿Desactivar este viaje del sistema?</h5>
+
+        <div class="bg-light p-3 rounded mb-4 text-center">
+            <h4 class="text-primary m-0">Viaje #@Model.Id</h4>
+            <small class="text-muted">Bus: #@Model.AutobusId | Cond: #@Model.ConductorId</small>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger w-100 fw-bold">Sí, Cancelar Viaje</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Volver</a>
+        </form>
+    </div>
+</div>

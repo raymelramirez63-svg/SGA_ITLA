@@ -1,0 +1,37 @@
+﻿@model SGA_ITLA.Domain.Entities.Transporte.Horario
+@{
+    ViewData["Title"] = "Editar Horario";
+}
+
+<div class="container mt-5">
+    <h3 class="text-warning fw-bold">Ajustar Horario</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 550px;">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="RutaId" class="form-label fw-bold">Ruta Asignada</label>
+                <select asp-for="RutaId" class="form-select" asp-items="ViewBag.Rutas"></select>
+                <span asp-validation-for="RutaId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DiasOperacion" class="form-label fw-bold">Días de Operación</label>
+                <input asp-for="DiasOperacion" class="form-control" />
+                <span asp-validation-for="DiasOperacion" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="HoraSalida" class="form-label fw-bold">Hora Exacta de Salida</label>
+                <!-- Importante: Forzamos el formato para que el input type="time" lo lea correctamente -->
+                <input asp-for="HoraSalida" type="time" value="@Model.HoraSalida.ToString(@"hh\:mm")" class="form-control" />
+                <span asp-validation-for="HoraSalida" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold">Actualizar Horario</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

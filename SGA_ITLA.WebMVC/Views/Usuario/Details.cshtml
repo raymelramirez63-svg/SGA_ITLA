@@ -1,0 +1,28 @@
+﻿@model SGA_ITLA.Domain.Entities.Usuarios.Usuario
+@{
+    ViewData["Title"] = "Perfil del Usuario";
+}
+
+<div class="container mt-5">
+    <h3 class="text-info fw-bold">Perfil Institucional</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">ID Sistema:</dt>
+            <dd class="col-sm-8 fw-bold">#@Model.Id</dd>
+
+            <dt class="col-sm-4 text-muted">Nombre:</dt>
+            <dd class="col-sm-8 text-primary fw-bold">@Model.NombreCompleto</dd>
+
+            <dt class="col-sm-4 text-muted">Correo:</dt>
+            <dd class="col-sm-8">@Model.Email</dd> 
+
+            <dt class="col-sm-4 text-muted">Rol:</dt>
+            <dd class="col-sm-8"><span class="badge bg-secondary">@Model.Rol</span></dd>
+        </dl>
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-secondary w-100">Volver al Directorio</a>
+        </div>
+    </div>
+</div>
