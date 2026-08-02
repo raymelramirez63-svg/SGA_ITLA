@@ -2,6 +2,7 @@
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
+using SGA_ITLA.Domain.Entities.Auditoria; 
 using SGA_ITLA.Domain.Enums;
 using SGA_ITLA.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -13,11 +14,13 @@ namespace SGA_ITLA.Application.Services.Transporte
     public class ViajeService : IViajeService
     {
         private readonly IViajeRepository _viajeRepo;
+        private readonly IAuditoriaRepository _auditoriaRepo; // AUDITORÍA
         private readonly ILogger<ViajeService> _logger;
 
-        public ViajeService(IViajeRepository viajeRepo, ILogger<ViajeService> logger)
+        public ViajeService(IViajeRepository viajeRepo, IAuditoriaRepository auditoriaRepo, ILogger<ViajeService> logger)
         {
             _viajeRepo = viajeRepo;
+            _auditoriaRepo = auditoriaRepo;
             _logger = logger;
         }
 
@@ -33,14 +36,50 @@ namespace SGA_ITLA.Application.Services.Transporte
             {
                 _logger.LogInformation("Validando reglas de negocio RN-OPE para nuevo viaje.");
 
-                viaje.Estado = EstadoViaje.Programado;
+                bool hayConflicto = await _viajeRepo.ExisteConflictoDeRecursosAsync(
+                    viaje.AutobusId,
+                    viaje.ConductorId,
+                    viaje.HorarioSalidaPlanificada);
 
+                if (hayConflicto)
+                {
+                    _logger.LogWarning("Validación fallida: Conflicto de recursos detectado.");
+
+                    // CUMPLIMIENTO RN-AUD: Auditar fallo
+                    await _auditoriaRepo.SaveEntityAsync(new RegistroAuditoria
+                    {
+                        ActorId = 1, // ID Sistema o Admin
+                        ModuloAfectado = "Planificación",
+                        AccionRealizada = "Creación de Viaje",
+                        ResultadoExitoso = false,
+                        MotivoFallo = "Conflicto de recursos detectado (Autobús o Conductor ocupado).",
+                        CreationDate = DateTime.Now
+                    });
+
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "Rechazado (RN-OPE): El autobús o el conductor ya se encuentran asignados a otro viaje activo en ese mismo horario."
+                    };
+                }
+
+                viaje.Estado = EstadoViaje.Programado;
                 var resultadoGuardado = await _viajeRepo.SaveEntityAsync(viaje);
 
                 if (resultadoGuardado.Success)
                 {
-                    _logger.LogInformation($"Viaje planificado exitosamente en la base de datos con ID {viaje.Id}.");
+                    // CUMPLIMIENTO RN-AUD: Auditar éxito
+                    await _auditoriaRepo.SaveEntityAsync(new RegistroAuditoria
+                    {
+                        ActorId = 1,
+                        ModuloAfectado = "Planificación",
+                        AccionRealizada = "Creación de Viaje",
+                        Detalles = $"Viaje #{viaje.Id} programado exitosamente.",
+                        ResultadoExitoso = true,
+                        CreationDate = DateTime.Now
+                    });
 
+                    _logger.LogInformation($"Viaje planificado exitosamente en la base de datos con ID {viaje.Id}.");
                     return new OperationResult
                     {
                         Success = true,
@@ -59,31 +98,7 @@ namespace SGA_ITLA.Application.Services.Transporte
 
         public async Task<OperationResult> ValidarAbordajeAsync(int viajeId, int estudianteId)
         {
-            try
-            {
-                _logger.LogInformation($"Validando acceso RN-ACC para estudiante {estudianteId} en viaje {viajeId}");
-
-                var estadoViajeActual = EstadoViaje.EnCurso;
-                int cupoDisponible = 40;
-                bool tieneAutorizacionActiva = true;
-
-                if (estadoViajeActual != EstadoViaje.EnCurso)
-                    return new OperationResult { Success = false, Message = "Acceso Denegado: El viaje aún no está en curso o ya finalizó." };
-
-                if (cupoDisponible <= 0)
-                    return new OperationResult { Success = false, Message = "Acceso Denegado: El autobús ha alcanzado su capacidad máxima." };
-
-                if (!tieneAutorizacionActiva)
-                    return new OperationResult { Success = false, Message = "Acceso Denegado: Autorización vencida o saldo insuficiente." };
-
-                _logger.LogInformation($"Acceso permitido. Auditando abordaje en base de datos.");
-                return new OperationResult { Success = true, Message = "Acceso Permitido. Saldo descontado exitosamente." };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al validar el abordaje.");
-                return new OperationResult { Success = false, Message = "Error interno al validar el abordaje." };
-            }
+            return new OperationResult { Success = false, Message = "Use AccesoService para validar abordajes." };
         }
 
         public async Task<OperationResult> ActualizarViajeAsync(SaveViajeDto dto)

@@ -33,7 +33,7 @@ namespace SGA_ITLA.WebMVC.Controllers
         public async Task<IActionResult> Create(Usuario modelo)
         {
             ModelState.Remove("CreationDate");
-            ModelState.Remove("PasswordHash"); 
+            ModelState.Remove("PasswordHash");
 
             if (!ModelState.IsValid) return View(modelo);
 
@@ -73,8 +73,8 @@ namespace SGA_ITLA.WebMVC.Controllers
             if (!originalResult.Success || originalResult.Data == null) return NotFound();
 
             var usuarioOriginal = originalResult.Data as Usuario;
-            usuarioOriginal.NombreCompleto = modelo.NombreCompleto;
-            usuarioOriginal.IdentificacionInstitucional = modelo.IdentificacionInstitucional; 
+            usuarioOriginal!.NombreCompleto = modelo.NombreCompleto;
+            usuarioOriginal.IdentificacionInstitucional = modelo.IdentificacionInstitucional;
             usuarioOriginal.Email = modelo.Email;
             usuarioOriginal.Rol = modelo.Rol;
 
@@ -106,12 +106,12 @@ namespace SGA_ITLA.WebMVC.Controllers
             var originalResult = await _usuarioRepository.GetByIdAsync(id);
             if (!originalResult.Success || originalResult.Data == null) return NotFound();
 
-            var result = await _usuarioRepository.DeleteEntityAsync(originalResult.Data as Usuario);
+            var result = await _usuarioRepository.DeleteEntityAsync((originalResult.Data as Usuario)!);
 
             if (result.Success) return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", result.Message);
-            return View(originalResult.Data as Usuario);
+            return View((originalResult.Data as Usuario)!);
         }
     }
 }

@@ -25,7 +25,6 @@
 
             <div class="mb-4">
                 <label asp-for="HoraSalida" class="form-label fw-bold">Hora Exacta de Salida</label>
-                <!-- Importante: Forzamos el formato para que el input type="time" lo lea correctamente -->
                 <input asp-for="HoraSalida" type="time" value="@Model.HoraSalida.ToString(@"hh\:mm")" class="form-control" />
                 <span asp-validation-for="HoraSalida" class="text-danger"></span>
             </div>

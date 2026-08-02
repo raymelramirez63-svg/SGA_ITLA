@@ -2,18 +2,19 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
-using SGA_ITLA.Infraestructure.Context;
+using SGA_ITLA.WebMVC.Services;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly SgaContext _context;
+        private readonly IAuthApiService _authApi;
 
-        public AuthController(SgaContext context)
+        // inyeccion del servicio HTTP en lugar del SgaContext
+        public AuthController(IAuthApiService authApi)
         {
-            _context = context;
+            _authApi = authApi;
         }
 
         [HttpGet]
@@ -29,22 +30,22 @@ namespace SGA_ITLA.WebMVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password && u.IsActive);
+            // 1. Manda las credenciales a la API
+            var loginResult = await _authApi.LoginAsync(email, password);
 
-            if (usuario == null)
+            if (loginResult == null || !loginResult.Success)
             {
                 ModelState.AddModelError("", "Credenciales incorrectas o cuenta suspendida.");
                 return View();
             }
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-                new Claim(ClaimTypes.Name, usuario.NombreCompleto),
-                new Claim(ClaimTypes.Email, usuario.Email),
-                new Claim(ClaimTypes.Role, usuario.Rol.ToString())
-            };
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(loginResult.Token);
+
+            var claims = new List<Claim>();
+            claims.AddRange(jwtToken.Claims);
+
+            claims.Add(new Claim("jwt_token", loginResult.Token));
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 

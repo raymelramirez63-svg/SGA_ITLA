@@ -9,26 +9,48 @@ using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Application.Services.Transporte;
 using SGA_ITLA.Application.Interfaces.Autorizaciones;
 using SGA_ITLA.Application.Services.Autorizaciones;
+using SGA_ITLA.WebMVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// 1. CONEXIÓN A LA BASE DE DATOS DIRECTA (In-Process)
 var connectionString = builder.Configuration.GetConnectionString("SgaDb");
 builder.Services.AddDbContext<SgaContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. CONFIGURACIÓN DE SEGURIDAD POR COOKIES (Para evitar el 404)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Auth/Login"; // Si no está logueado, lo manda aquí
+        options.LoginPath = "/Auth/Login";
         options.AccessDeniedPath = "/Auth/Login";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     });
 
-// 3. INYECCIÓN DE REPOSITORIOS (Capa de Infraestructura)
+builder.Services.AddHttpContextAccessor();
+
+// Registro del interceptador
+builder.Services.AddTransient<AuthTokenHandler>();
+
+// 1. Cliente LIMPIO (Solo para el AuthApiService, no pide token)
+builder.Services.AddHttpClient("SgaApiClean", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7031/api/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+// 2. Cliente PROTEGIDO (Para el resto de servicios, inyecta el token automáticamente)
+builder.Services.AddHttpClient("SgaApi", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7031/api/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// Inyección de Servicios Cliente de la API
+builder.Services.AddScoped<IAuthApiService, AuthApiService>();
+builder.Services.AddScoped<ICatalogoApiService, CatalogoApiService>();
+builder.Services.AddScoped<ITransporteApiService, TransporteApiService>();
+
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAutorizacionRepository, AutorizacionRepository>();
 builder.Services.AddScoped<IAutobusRepository, AutobusRepository>();
@@ -37,7 +59,6 @@ builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
 builder.Services.AddScoped<IViajeRepository, ViajeRepository>();
 builder.Services.AddScoped<IHorarioRepository, HorarioRepository>();
 
-// 4. INYECCIÓN DE SERVICIOS (Capa de Aplicación)
 builder.Services.AddScoped<ICatalogoService, CatalogoService>();
 builder.Services.AddScoped<IViajeService, ViajeService>();
 builder.Services.AddScoped<IAutorizacionService, AutorizacionService>();
@@ -52,7 +73,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseAuthentication();

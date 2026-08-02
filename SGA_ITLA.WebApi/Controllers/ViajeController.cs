@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Application.Dtos.Transporte.Viajes;
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Entities.Transporte;
+using SGA_ITLA.Domain.Interfaces;
 using System;
 using System.Threading.Tasks;
 
@@ -14,10 +15,12 @@ namespace SGA_ITLA.WebApi.Controllers
     public class ViajeController : ControllerBase
     {
         private readonly IViajeService _viajeService;
+        private readonly IHorarioRepository _horarioRepo; 
 
-        public ViajeController(IViajeService viajeService)
+        public ViajeController(IViajeService viajeService, IHorarioRepository horarioRepo)
         {
             _viajeService = viajeService;
+            _horarioRepo = horarioRepo;
         }
 
         [HttpGet("GetViajesActivos")]
@@ -28,11 +31,33 @@ namespace SGA_ITLA.WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpPost("SaveViaje")]
-        public IActionResult SaveViaje([FromBody] SaveViajeDto saveViajeDto)
+        [HttpPost("SaveViaje")] 
+        public async Task<IActionResult> SaveViaje([FromBody] SaveViajeDto saveViajeDto) 
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            return Ok(new { success = true, message = "Viaje registrado exitosamente en la base de datos." });
+
+            var nuevoViaje = new Viaje
+            {
+                RutaId = saveViajeDto.RutaId,
+                AutobusId = saveViajeDto.AutobusId,
+                ConductorId = saveViajeDto.ConductorId,
+                CupoDisponibleActual = 40
+            };
+
+            var horarioResult = await _horarioRepo.GetByIdAsync(saveViajeDto.HorarioId);
+            if (horarioResult.Success && horarioResult.Data is Horario horario)
+            {
+                nuevoViaje.HorarioSalidaPlanificada = DateTime.Today.Add(horario.HoraSalida);
+            }
+
+            var result = await _viajeService.RegistrarViajeAsync(nuevoViaje);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
         [HttpPut("UpdateViaje")]
@@ -72,5 +97,4 @@ namespace SGA_ITLA.WebApi.Controllers
         public string? TipoIncidencia { get; set; }
         public string? Descripcion { get; set; }
     }
-    
 }

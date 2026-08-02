@@ -30,7 +30,6 @@
             </div>
 
             <div class="mb-3">
-                <!-- AQUI ESTABA EL ERROR: Usar PasswordHash -->
                 <label asp-for="PasswordHash" class="form-label fw-bold">Nueva Contraseña (Opcional)</label>
                 <input asp-for="PasswordHash" type="password" class="form-control" value="" placeholder="Dejar en blanco para no cambiar" />
                 <span asp-validation-for="PasswordHash" class="text-danger"></span>

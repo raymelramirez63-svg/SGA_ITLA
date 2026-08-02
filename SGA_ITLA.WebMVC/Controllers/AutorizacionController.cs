@@ -10,7 +10,7 @@ using SGA_ITLA.Domain.Enums;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
-    // Bloqueamos para que solo los administradores puedan entrar
+    //  solo los administradores puedan entrar
     [Authorize(Roles = "AdminAutorizaciones,Administrador")]
     public class AutorizacionController : Controller
     {
@@ -88,7 +88,7 @@ namespace SGA_ITLA.WebMVC.Controllers
         public async Task<IActionResult> Edit(Autorizacion modelo)
         {
             ModelState.Remove("CreationDate");
-            ModelState.Remove("Usuario"); 
+            ModelState.Remove("Usuario");
 
             if (!ModelState.IsValid)
             {
@@ -101,7 +101,7 @@ namespace SGA_ITLA.WebMVC.Controllers
 
             var autorizacionOriginal = originalResult.Data as Autorizacion;
 
-            autorizacionOriginal.Tipo = modelo.Tipo;
+            autorizacionOriginal!.Tipo = modelo.Tipo;
             autorizacionOriginal.SaldoDisponible = modelo.SaldoDisponible;
             autorizacionOriginal.FechaFinVigencia = modelo.FechaFinVigencia;
             autorizacionOriginal.IsActive = modelo.IsActive;
@@ -130,12 +130,12 @@ namespace SGA_ITLA.WebMVC.Controllers
             var originalResult = await _autorizacionRepository.GetByIdAsync(id);
             if (!originalResult.Success || originalResult.Data == null) return NotFound();
 
-            var result = await _autorizacionRepository.DeleteEntityAsync(originalResult.Data as Autorizacion);
+            var result = await _autorizacionRepository.DeleteEntityAsync((originalResult.Data as Autorizacion)!);
 
             if (result.Success) return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", result.Message);
-            return View(originalResult.Data as Autorizacion);
+            return View((originalResult.Data as Autorizacion)!);
         }
 
         private async Task CargarUsuariosViewBag()

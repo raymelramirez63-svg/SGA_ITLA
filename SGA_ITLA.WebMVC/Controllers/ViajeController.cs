@@ -1,47 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using SGA_ITLA.Application.Interfaces.Transporte;
-using SGA_ITLA.Domain.Interfaces;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Application.Dtos.Transporte.Viajes;
 using SGA_ITLA.Domain.Enums;
+using SGA_ITLA.WebMVC.Services;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
     [Authorize]
     public class ViajeController : Controller
     {
-        private readonly IViajeService _viajeService;
-        private readonly IViajeRepository _viajeRepository;
-        private readonly IRutaRepository _rutaRepo;
-        private readonly IAutobusRepository _autobusRepo;
-        private readonly IUsuarioRepository _usuarioRepo;
-        private readonly IHorarioRepository _horarioRepo;
+        private readonly ITransporteApiService _transporteApi;
+        private readonly ICatalogoApiService _catalogoApi;
 
-        // los Selects
-        public ViajeController(
-            IViajeService viajeService,
-            IViajeRepository viajeRepository,
-            IRutaRepository rutaRepo,
-            IAutobusRepository autobusRepo,
-            IUsuarioRepository usuarioRepo,
-            IHorarioRepository horarioRepo)
+        public ViajeController(ITransporteApiService transporteApi, ICatalogoApiService catalogoApi)
         {
-            _viajeService = viajeService;
-            _viajeRepository = viajeRepository;
-            _rutaRepo = rutaRepo;
-            _autobusRepo = autobusRepo;
-            _usuarioRepo = usuarioRepo;
-            _horarioRepo = horarioRepo;
+            _transporteApi = transporteApi;
+            _catalogoApi = catalogoApi;
         }
 
         // 1. VISTA: INDEX
         public async Task<IActionResult> Index()
         {
-            var result = await _viajeRepository.GetViajesDetalladosAsync();
-            var lista = result.Data as IEnumerable<Viaje> ?? new List<Viaje>();
+            var lista = await _transporteApi.ObtenerViajesAsync();
             return View(lista);
         }
 
@@ -64,26 +46,11 @@ namespace SGA_ITLA.WebMVC.Controllers
                 return View(dto);
             }
 
-            var viaje = new Viaje
-            {
-                RutaId = dto.RutaId,
-                AutobusId = dto.AutobusId,
-                ConductorId = dto.ConductorId,
-                Estado = EstadoViaje.Programado,
-                CupoDisponibleActual = 40 // Cupo inicial por defecto
-            };
+            var exito = await _transporteApi.RegistrarViajeAsync(dto);
 
-            var horarioResult = await _horarioRepo.GetByIdAsync(dto.HorarioId);
-            if (horarioResult.Success && horarioResult.Data is Horario horario)
-            {
-                viaje.HorarioSalidaPlanificada = DateTime.Today.Add(horario.HoraSalida);
-            }
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var result = await _viajeService.RegistrarViajeAsync(viaje);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Se produjo un error al registrar el viaje mediante la API.");
             await CargarListasDesplegables();
             return View(dto);
         }
@@ -91,20 +58,20 @@ namespace SGA_ITLA.WebMVC.Controllers
         // 3. VISTA: DETAILS
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _viajeRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var viaje = await _transporteApi.ObtenerViajePorIdAsync(id);
+            if (viaje == null) return NotFound();
 
-            return View(result.Data as Viaje);
+            return View(viaje);
         }
 
         [Authorize(Roles = "AdminTransporte,Administrador,Conductor")]
         public async Task<IActionResult> Edit(int id)
         {
-            var result = await _viajeRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var viaje = await _transporteApi.ObtenerViajePorIdAsync(id);
+            if (viaje == null) return NotFound();
 
             await CargarListasDesplegables();
-            return View(result.Data as Viaje);
+            return View(viaje);
         }
 
         [HttpPost]
@@ -112,26 +79,22 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte,Administrador,Conductor")]
         public async Task<IActionResult> Edit(Viaje modelo)
         {
-            var originalResult = await _viajeRepository.GetByIdAsync(modelo.Id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            ModelState.Remove("CreationDate");
+            ModelState.Remove("Ruta");
+            ModelState.Remove("Autobus");
+            ModelState.Remove("Conductor");
 
-            var viajeOriginal = originalResult.Data as Viaje;
-
-            viajeOriginal.Estado = modelo.Estado;
-            if (modelo.Estado == EstadoViaje.EnCurso && viajeOriginal.HorarioSalidaReal == null)
+            if (!ModelState.IsValid)
             {
-                viajeOriginal.HorarioSalidaReal = DateTime.Now;
-            }
-            if (modelo.Estado == EstadoViaje.Completado)
-            {
-                viajeOriginal.HorarioLlegadaReal = DateTime.Now;
+                await CargarListasDesplegables();
+                return View(modelo);
             }
 
-            var result = await _viajeRepository.UpdateEntityAsync(viajeOriginal);
+            var exito = await _transporteApi.ActualizarViajeAsync(modelo);
 
-            if (result.Success) return RedirectToAction(nameof(Index));
+            if (exito) return RedirectToAction(nameof(Index));
 
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al intentar actualizar el estado del viaje en la API.");
             await CargarListasDesplegables();
             return View(modelo);
         }
@@ -139,10 +102,10 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _viajeRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var viaje = await _transporteApi.ObtenerViajePorIdAsync(id);
+            if (viaje == null) return NotFound();
 
-            return View(result.Data as Viaje);
+            return View(viaje);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -150,29 +113,29 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var originalResult = await _viajeRepository.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _transporteApi.EliminarViajeAsync(id);
 
-            var result = await _viajeRepository.DeleteEntityAsync(originalResult.Data as Viaje);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
-            return View(originalResult.Data as Viaje);
+            ModelState.AddModelError("", "No se pudo anular el viaje mediante la API.");
+            var viaje = await _transporteApi.ObtenerViajePorIdAsync(id);
+            return View(viaje);
         }
 
-        // --- MÉTODO PARA LLENAR LOS 4 DROPDOWNLISTS ---
+        // --- MÉTODO PARA LLENAR LOS 4 DROPDOWNLISTS DESDE LA API ---
         private async Task CargarListasDesplegables()
         {
-            var rutas = (await _rutaRepo.GetAllAsync()).Data as IEnumerable<Ruta> ?? new List<Ruta>();
-            var buses = (await _autobusRepo.GetAllAsync()).Data as IEnumerable<Autobus> ?? new List<Autobus>();
-            var usuarios = (await _usuarioRepo.GetAllAsync()).Data as IEnumerable<Usuario> ?? new List<Usuario>();
-            var horarios = (await _horarioRepo.GetAllAsync()).Data as IEnumerable<Horario> ?? new List<Horario>();
+            var rutas = await _catalogoApi.ObtenerRutasAsync();
+            var horarios = await _transporteApi.ObtenerHorariosAsync();
+
+            // Consumo de los componentes físicos y de personal desde la API
+            var buses = await _catalogoApi.ObtenerAutobusesAsync();
+            var conductores = await _catalogoApi.ObtenerConductoresAsync();
 
             ViewBag.Rutas = new SelectList(rutas, "Id", "NombreRuta");
-            ViewBag.Autobuses = new SelectList(buses.Where(b => b.EstadoOperativo == EstadoAutobus.Activo), "Id", "Placa");
-            ViewBag.Conductores = new SelectList(usuarios.Where(u => u.Rol == RolUsuario.Conductor), "Id", "NombreCompleto");
             ViewBag.Horarios = new SelectList(horarios, "Id", "HoraSalida");
+            ViewBag.Autobuses = new SelectList(buses, "Id", "Placa");
+            ViewBag.Conductores = new SelectList(conductores, "Id", "NombreCompleto");
         }
     }
 }

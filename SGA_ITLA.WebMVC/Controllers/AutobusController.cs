@@ -36,7 +36,7 @@ namespace SGA_ITLA.WebMVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "AdminTransporte")]
-        public async Task<IActionResult> Create(CreateAutobusDto dto) 
+        public async Task<IActionResult> Create(CreateAutobusDto dto)
         {
             if (!ModelState.IsValid) return View(dto);
 
@@ -75,7 +75,7 @@ namespace SGA_ITLA.WebMVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "AdminTransporte")]
-        public async Task<IActionResult> Edit(Autobus modelo) 
+        public async Task<IActionResult> Edit(Autobus modelo)
         {
             if (!ModelState.IsValid) return View(modelo);
 
@@ -83,7 +83,7 @@ namespace SGA_ITLA.WebMVC.Controllers
             if (!originalResult.Success || originalResult.Data == null) return NotFound();
 
             var autobusOriginal = originalResult.Data as Autobus;
-            autobusOriginal.Placa = modelo.Placa;
+            autobusOriginal!.Placa = modelo.Placa;
             autobusOriginal.CapacidadMaxima = modelo.CapacidadMaxima;
             autobusOriginal.EstadoOperativo = modelo.EstadoOperativo;
 
@@ -112,12 +112,12 @@ namespace SGA_ITLA.WebMVC.Controllers
             var originalResult = await _autobusRepository.GetByIdAsync(id);
             if (!originalResult.Success || originalResult.Data == null) return NotFound();
 
-            var result = await _autobusRepository.DeleteEntityAsync(originalResult.Data as Autobus);
+            var result = await _autobusRepository.DeleteEntityAsync((originalResult.Data as Autobus)!);
 
             if (result.Success) return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", result.Message);
-            return View(originalResult.Data as Autobus);
+            return View((originalResult.Data as Autobus)!);
         }
     }
 }

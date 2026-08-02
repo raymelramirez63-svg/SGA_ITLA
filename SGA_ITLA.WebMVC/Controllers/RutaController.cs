@@ -1,30 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using SGA_ITLA.Application.Interfaces.Catalogo;
-using SGA_ITLA.Domain.Interfaces;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Application.Dtos.Catalogo;
+using SGA_ITLA.WebMVC.Services; // Usamos nuestro nuevo servicio API
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
     [Authorize]
     public class RutaController : Controller
     {
-        private readonly ICatalogoService _catalogoService;
-        private readonly IRutaRepository _rutaRepository;
+        private readonly ICatalogoApiService _apiService;
 
-        // Inyección directa (In-Process)
-        public RutaController(ICatalogoService catalogoService, IRutaRepository rutaRepository)
+        // Inyección del servicio HTTP (Cumpliendo los lineamientos)
+        public RutaController(ICatalogoApiService apiService)
         {
-            _catalogoService = catalogoService;
-            _rutaRepository = rutaRepository;
+            _apiService = apiService;
         }
 
         // 1. VISTA: INDEX (Listado)
         public async Task<IActionResult> Index()
         {
-            var result = await _rutaRepository.GetAllAsync();
-            var lista = result.Data as IEnumerable<Ruta> ?? new List<Ruta>();
+            var lista = await _apiService.ObtenerRutasAsync();
             return View(lista);
         }
 
@@ -42,37 +38,29 @@ namespace SGA_ITLA.WebMVC.Controllers
         {
             if (!ModelState.IsValid) return View(dto);
 
-            var ruta = new Ruta
-            {
-                NombreRuta = dto.NombreRuta
-            };
+            var exito = await _apiService.RegistrarRutaAsync(dto);
 
-            // Cumpliendo el audio: llamamos al servicio, no a la API
-            var result = await _catalogoService.RegistrarRutaAsync(ruta);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Hubo un problema al registrar la ruta en la API.");
             return View(dto);
         }
 
-        // 3. VISTA: DETAILS (Todos pueden ver)
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _rutaRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var ruta = await _apiService.ObtenerRutaPorIdAsync(id);
+            if (ruta == null) return NotFound();
 
-            return View(result.Data as Ruta);
+            return View(ruta);
         }
 
-        // 4. VISTA: EDIT (Solo Administradores)
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> Edit(int id)
         {
-            var result = await _rutaRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var ruta = await _apiService.ObtenerRutaPorIdAsync(id);
+            if (ruta == null) return NotFound();
 
-            return View(result.Data as Ruta);
+            return View(ruta);
         }
 
         [HttpPost]
@@ -86,28 +74,21 @@ namespace SGA_ITLA.WebMVC.Controllers
 
             if (!ModelState.IsValid) return View(modelo);
 
-            var originalResult = await _rutaRepository.GetByIdAsync(modelo.Id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _apiService.ActualizarRutaAsync(modelo);
 
-            var rutaOriginal = originalResult.Data as Ruta;
-            rutaOriginal.NombreRuta = modelo.NombreRuta;
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var result = await _rutaRepository.UpdateEntityAsync(rutaOriginal);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "No se pudo actualizar la ruta en la API.");
             return View(modelo);
         }
 
-        // 5. VISTA: DELETE (Solo Administradores)
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _rutaRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var ruta = await _apiService.ObtenerRutaPorIdAsync(id);
+            if (ruta == null) return NotFound();
 
-            return View(result.Data as Ruta);
+            return View(ruta);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -115,15 +96,14 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var originalResult = await _rutaRepository.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _apiService.EliminarRutaAsync(id);
 
-            var result = await _rutaRepository.DeleteEntityAsync(originalResult.Data as Ruta);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            if (result.Success) return RedirectToAction(nameof(Index));
+            ModelState.AddModelError("", "Ocurrió un error al intentar eliminar la ruta mediante la API.");
 
-            ModelState.AddModelError("", result.Message);
-            return View(originalResult.Data as Ruta);
+            var ruta = await _apiService.ObtenerRutaPorIdAsync(id);
+            return View(ruta);
         }
     }
 }
