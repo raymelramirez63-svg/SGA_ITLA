@@ -5,6 +5,7 @@ namespace SGA_ITLA.Application.Dtos.Catalogo
     public class CreateAutobusDto
     {
         [Required(ErrorMessage = "La placa es obligatoria.")]
+        [StringLength(10, ErrorMessage = "La placa no puede tener más de 10 caracteres.")] 
         public string Placa { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La capacidad máxima es obligatoria.")]

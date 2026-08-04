@@ -1,0 +1,67 @@
+﻿@model IEnumerable<SGA_ITLA.Domain.Entities.Auditoria.RegistroAuditoria>
+@{
+    ViewData["Title"] = "Auditoría del Sistema";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h3 class="text-primary m-0 fw-bold">Reporte de Auditoría y Trazabilidad</h3>
+            <p class="text-muted small">Registro inmutable de transacciones (Regla RN-AUD)</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th class="ps-3">Fecha y Hora</th>
+                    <th>Módulo</th>
+                    <th>Acción</th>
+                    <th>Actor (Usuario ID)</th>
+                    <th>Resultado</th>
+                    <th class="pe-3">Detalles / Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-3 text-muted fw-semibold">@item.CreationDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td><span class="badge bg-secondary">@item.ModuloAfectado</span></td>
+                            <td class="fw-bold text-dark">@item.AccionRealizada</td>
+                            <td>#@item.ActorId</td>
+                            <td>
+                                @if (item.ResultadoExitoso)
+                                {
+                                    <span class="badge bg-success">Exitoso</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Rechazado</span>
+                                }
+                            </td>
+                            <td class="pe-3 text-muted small">
+                                @if (item.ResultadoExitoso)
+                                {
+                                    @item.Detalles
+                                }
+                                else
+                                {
+                                    <span class="text-danger fw-bold">@item.MotivoFallo</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="text-center py-4 text-muted">No hay registros de auditoría disponibles.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

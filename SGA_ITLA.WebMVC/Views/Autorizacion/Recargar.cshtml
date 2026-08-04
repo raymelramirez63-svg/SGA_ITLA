@@ -1,0 +1,31 @@
+﻿@model SGA_ITLA.Application.Dtos.Autorizaciones.RecargarTarjetaDto
+@{
+    ViewData["Title"] = "Recargar Tarjeta";
+}
+
+<div class="container mt-5">
+    <h3 class="text-warning fw-bold">Recargar Tarjeta de Viajes</h3>
+    <hr />
+    <div class="card shadow-sm p-4 border-0" style="max-width: 500px;">
+        <form asp-action="Recargar" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="IdentificacionInstitucional" class="form-label fw-bold">Matrícula / ID Institucional</label>
+                <input asp-for="IdentificacionInstitucional" class="form-control" placeholder="Ej: 2025-1970" />
+                <span asp-validation-for="IdentificacionInstitucional" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Monto" class="form-label fw-bold">Monto a Recargar (RD$)</label>
+                <input asp-for="Monto" type="number" step="0.01" class="form-control" placeholder="Ej: 500.00" />
+                <span asp-validation-for="Monto" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold">Procesar Recarga</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+                

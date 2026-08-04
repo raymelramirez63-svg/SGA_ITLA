@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using SGA_ITLA.Domain.Interfaces;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Domain.Enums;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "AdminTransporte")]
     public class UsuarioController : Controller
     {
         private readonly IUsuarioRepository _usuarioRepository;

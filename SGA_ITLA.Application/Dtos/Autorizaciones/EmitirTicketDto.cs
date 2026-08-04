@@ -14,6 +14,8 @@ namespace SGA_ITLA.Application.Dtos.Autorizaciones
         public int PagoId { get; set; }
 
         [Required(ErrorMessage = "La fecha de inicio de vigencia es obligatoria.")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime FechaInicio { get; set; }
     }
 }

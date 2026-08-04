@@ -7,10 +7,12 @@ using SGA_ITLA.Domain.Entities.Autorizaciones;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Application.Dtos.Autorizaciones;
 using SGA_ITLA.Domain.Enums;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
-    //  solo los administradores puedan entrar
     [Authorize(Roles = "AdminAutorizaciones,Administrador")]
     public class AutorizacionController : Controller
     {
@@ -115,6 +117,7 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(modelo);
         }
 
+        // 5. VISTA: DELETE
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _autorizacionRepository.GetByIdAsync(id);
@@ -138,6 +141,48 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View((originalResult.Data as Autorizacion)!);
         }
 
+        // 6. NUEVA VISTA: RECARGAR TARJETA (Maneja la UI y Guarda en BD)
+        [HttpGet]
+        public IActionResult Recargar()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Recargar(RecargarTarjetaDto dto)
+        {
+            // Validaciones Frontend/Backend (DTO)
+            if (!ModelState.IsValid)
+            {
+                return View(dto);
+            }
+
+            // 1. Buscam al usuario en la base de datos usando la Matrícula que digitó
+            var resultUsuarios = await _usuarioRepository.GetAllAsync();
+            var usuarios = resultUsuarios.Data as IEnumerable<Usuario> ?? new List<Usuario>();
+
+            // Compara la identificación del DTO con la de la entidad Usuario
+            var usuario = usuarios.FirstOrDefault(u => u.IdentificacionInstitucional == dto.IdentificacionInstitucional);
+
+            if (usuario == null)
+            {
+                ModelState.AddModelError("IdentificacionInstitucional", "No se encontró ningún estudiante/empleado con esa matrícula.");
+                return View(dto);
+            }
+
+            var result = await _autorizacionService.RecargarTarjetaAsync(usuario.Id, dto.Monto);
+
+            if (result.Success)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError("", result.Message);
+            return View(dto);
+        }
+
+        // METODO AUXILIAR
         private async Task CargarUsuariosViewBag()
         {
             var result = await _usuarioRepository.GetAllAsync();
@@ -147,3 +192,8 @@ namespace SGA_ITLA.WebMVC.Controllers
         }
     }
 }
+
+
+
+
+
