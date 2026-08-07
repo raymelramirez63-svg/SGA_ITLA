@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Application.Dtos.Autorizaciones;
 using SGA_ITLA.Application.Interfaces.Autorizaciones;
-using SGA_ITLA.Domain.Interfaces; 
+using SGA_ITLA.Domain.Entities.Autorizaciones;
+using SGA_ITLA.Domain.Interfaces;
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
@@ -13,15 +14,45 @@ namespace SGA_ITLA.WebApi.Controllers
     public class AutorizacionesController : ControllerBase
     {
         private readonly IAutorizacionService _autorizacionService;
-        private readonly IUsuarioRepository _usuarioRepository; 
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IAutorizacionRepository _autorizacionRepo; 
 
-        public AutorizacionesController(IAutorizacionService autorizacionService, IUsuarioRepository usuarioRepository)
+        public AutorizacionesController(
+            IAutorizacionService autorizacionService,
+            IUsuarioRepository usuarioRepository,
+            IAutorizacionRepository autorizacionRepo)
         {
             _autorizacionService = autorizacionService;
             _usuarioRepository = usuarioRepository;
+            _autorizacionRepo = autorizacionRepo;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador,Auditor")]
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(await _autorizacionRepo.GetAllAsync());
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
+        public async Task<IActionResult> Update([FromBody] Autorizacion autorizacion)
+        {
+            return Ok(await _autorizacionRepo.UpdateEntityAsync(autorizacion));
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _autorizacionRepo.GetByIdAsync(id);
+            if (!result.Success || result.Data == null) return NotFound();
+
+            return Ok(await _autorizacionRepo.DeleteEntityAsync((Autorizacion)result.Data));
         }
 
         [HttpPost("EmitirTicket")]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> EmitirTicket([FromBody] EmitirTicketDto request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -36,6 +67,7 @@ namespace SGA_ITLA.WebApi.Controllers
         }
 
         [HttpPost("RecargarTarjeta")]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> RecargarTarjeta([FromBody] RecargarTarjetaDto request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);

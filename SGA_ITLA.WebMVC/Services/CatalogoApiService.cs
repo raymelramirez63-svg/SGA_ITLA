@@ -1,7 +1,12 @@
 ﻿using SGA_ITLA.Application.Dtos.Catalogo;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Entities.Usuarios; 
+using SGA_ITLA.Domain.Entities.Usuarios;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Services
 {
@@ -50,7 +55,6 @@ namespace SGA_ITLA.WebMVC.Services
             return response.IsSuccessStatusCode;
         }
 
-      
         public async Task<IEnumerable<Autobus>> ObtenerAutobusesAsync()
         {
             var response = await _httpClient.GetAsync("Catalogo/autobuses");
@@ -73,6 +77,24 @@ namespace SGA_ITLA.WebMVC.Services
                 return result?.Data ?? new List<Usuario>();
             }
             return new List<Usuario>();
+        }
+
+        public async Task<bool> RegistrarAutobusAsync(CreateAutobusDto dto)
+        {
+            var response = await _httpClient.PostAsJsonAsync("Catalogo/autobus", dto);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> ActualizarAutobusAsync(Autobus autobus)
+        {
+            var response = await _httpClient.PutAsJsonAsync("Catalogo/autobus", autobus);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> EliminarAutobusAsync(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"Catalogo/autobus/{id}");
+            return response.IsSuccessStatusCode;
         }
     }
 

@@ -1,6 +1,8 @@
 ﻿using SGA_ITLA.Application.Dtos.Catalogo;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Entities.Usuarios; 
+using SGA_ITLA.Domain.Entities.Usuarios;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Services
 {
@@ -14,5 +16,9 @@ namespace SGA_ITLA.WebMVC.Services
 
         Task<IEnumerable<Autobus>> ObtenerAutobusesAsync();
         Task<IEnumerable<Usuario>> ObtenerConductoresAsync();
+
+        Task<bool> RegistrarAutobusAsync(CreateAutobusDto dto);
+        Task<bool> ActualizarAutobusAsync(Autobus autobus);
+        Task<bool> EliminarAutobusAsync(int id);
     }
 }

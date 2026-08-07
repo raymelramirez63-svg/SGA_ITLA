@@ -1,40 +1,30 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using SGA_ITLA.Application.Interfaces.Autorizaciones;
-using SGA_ITLA.Domain.Interfaces;
-using SGA_ITLA.Domain.Entities.Autorizaciones;
-using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Application.Dtos.Autorizaciones;
+using SGA_ITLA.Domain.Entities.Autorizaciones;
 using SGA_ITLA.Domain.Enums;
-using System.Collections.Generic;
+using SGA_ITLA.WebMVC.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
-    // 🔥 PERMISOS AÑADIDOS PARA AUDITOR
     [Authorize(Roles = "AdminAutorizaciones,Administrador,Auditor")]
     public class AutorizacionController : Controller
     {
-        private readonly IAutorizacionService _autorizacionService;
-        private readonly IAutorizacionRepository _autorizacionRepository;
-        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IAutorizacionApiService _autorizacionApi;
+        private readonly IUsuarioApiService _usuarioApi;
 
-        public AutorizacionController(
-            IAutorizacionService autorizacionService,
-            IAutorizacionRepository autorizacionRepository,
-            IUsuarioRepository usuarioRepository)
+        public AutorizacionController(IAutorizacionApiService autorizacionApi, IUsuarioApiService usuarioApi)
         {
-            _autorizacionService = autorizacionService;
-            _autorizacionRepository = autorizacionRepository;
-            _usuarioRepository = usuarioRepository;
+            _autorizacionApi = autorizacionApi;
+            _usuarioApi = usuarioApi;
         }
 
         public async Task<IActionResult> Index()
         {
-            var result = await _autorizacionRepository.GetAllAsync();
-            var lista = result.Data as IEnumerable<Autorizacion> ?? new List<Autorizacion>();
+            var lista = await _autorizacionApi.ObtenerAutorizacionesAsync();
             return View(lista);
         }
 
@@ -56,31 +46,31 @@ namespace SGA_ITLA.WebMVC.Controllers
                 return View(dto);
             }
 
-            var result = await _autorizacionService.EmitirTicketMensualAsync(dto.UsuarioId, dto.PagoId, dto.FechaInicio);
+            var exito = await _autorizacionApi.EmitirTicketAsync(dto);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al emitir el ticket en la API.");
             await CargarUsuariosViewBag();
             return View(dto);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _autorizacionRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Autorizacion);
+            var autorizaciones = await _autorizacionApi.ObtenerAutorizacionesAsync();
+            var aut = autorizaciones.FirstOrDefault(a => a.Id == id);
+            if (aut == null) return NotFound();
+            return View(aut);
         }
 
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Edit(int id)
         {
-            var result = await _autorizacionRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
+            var autorizaciones = await _autorizacionApi.ObtenerAutorizacionesAsync();
+            var aut = autorizaciones.FirstOrDefault(a => a.Id == id);
+            if (aut == null) return NotFound();
 
             await CargarUsuariosViewBag();
-            return View(result.Data as Autorizacion);
+            return View(aut);
         }
 
         [HttpPost]
@@ -97,21 +87,10 @@ namespace SGA_ITLA.WebMVC.Controllers
                 return View(modelo);
             }
 
-            var originalResult = await _autorizacionRepository.GetByIdAsync(modelo.Id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _autorizacionApi.ActualizarAutorizacionAsync(modelo);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var autorizacionOriginal = originalResult.Data as Autorizacion;
-
-            autorizacionOriginal!.Tipo = modelo.Tipo;
-            autorizacionOriginal.SaldoDisponible = modelo.SaldoDisponible;
-            autorizacionOriginal.FechaFinVigencia = modelo.FechaFinVigencia;
-            autorizacionOriginal.IsActive = modelo.IsActive;
-
-            var result = await _autorizacionRepository.UpdateEntityAsync(autorizacionOriginal);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al actualizar la autorización.");
             await CargarUsuariosViewBag();
             return View(modelo);
         }
@@ -119,10 +98,10 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _autorizacionRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Autorizacion);
+            var autorizaciones = await _autorizacionApi.ObtenerAutorizacionesAsync();
+            var aut = autorizaciones.FirstOrDefault(a => a.Id == id);
+            if (aut == null) return NotFound();
+            return View(aut);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -130,60 +109,35 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var originalResult = await _autorizacionRepository.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _autorizacionApi.EliminarAutorizacionAsync(id);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var result = await _autorizacionRepository.DeleteEntityAsync((originalResult.Data as Autorizacion)!);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
-            return View((originalResult.Data as Autorizacion)!);
+            ModelState.AddModelError("", "No se pudo anular la autorización.");
+            var autorizaciones = await _autorizacionApi.ObtenerAutorizacionesAsync();
+            return View(autorizaciones.FirstOrDefault(a => a.Id == id));
         }
 
         [HttpGet]
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
-        public IActionResult Recargar()
-        {
-            return View();
-        }
+        public IActionResult Recargar() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Recargar(RecargarTarjetaDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(dto);
-            }
+            if (!ModelState.IsValid) return View(dto);
 
-            var resultUsuarios = await _usuarioRepository.GetAllAsync();
-            var usuarios = resultUsuarios.Data as IEnumerable<Usuario> ?? new List<Usuario>();
+            var exito = await _autorizacionApi.RecargarTarjetaAsync(dto);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var usuario = usuarios.FirstOrDefault(u => u.IdentificacionInstitucional == dto.IdentificacionInstitucional);
-
-            if (usuario == null)
-            {
-                ModelState.AddModelError("IdentificacionInstitucional", "No se encontró ningún estudiante/empleado con esa matrícula.");
-                return View(dto);
-            }
-
-            var result = await _autorizacionService.RecargarTarjetaAsync(usuario.Id, dto.Monto);
-
-            if (result.Success)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "No se pudo procesar la recarga en la API. Verifique los datos.");
             return View(dto);
         }
 
         private async Task CargarUsuariosViewBag()
         {
-            var result = await _usuarioRepository.GetAllAsync();
-            var usuarios = result.Data as IEnumerable<Usuario> ?? new List<Usuario>();
+            var usuarios = await _usuarioApi.ObtenerUsuariosAsync();
             var beneficiarios = usuarios.Where(u => u.Rol == RolUsuario.Estudiante || u.Rol == RolUsuario.Empleado);
             ViewBag.Usuarios = new SelectList(beneficiarios, "Id", "NombreCompleto");
         }

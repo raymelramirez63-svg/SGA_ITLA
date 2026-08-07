@@ -2,7 +2,7 @@
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Base;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Entities.Auditoria; 
+using SGA_ITLA.Domain.Entities.Auditoria;
 using SGA_ITLA.Domain.Enums;
 using SGA_ITLA.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -14,7 +14,7 @@ namespace SGA_ITLA.Application.Services.Transporte
     public class ViajeService : IViajeService
     {
         private readonly IViajeRepository _viajeRepo;
-        private readonly IAuditoriaRepository _auditoriaRepo; // AUDITORÍA
+        private readonly IAuditoriaRepository _auditoriaRepo;
         private readonly ILogger<ViajeService> _logger;
 
         public ViajeService(IViajeRepository viajeRepo, IAuditoriaRepository auditoriaRepo, ILogger<ViajeService> logger)
@@ -44,11 +44,9 @@ namespace SGA_ITLA.Application.Services.Transporte
                 if (hayConflicto)
                 {
                     _logger.LogWarning("Validación fallida: Conflicto de recursos detectado.");
-
-                    // CUMPLIMIENTO RN-AUD: Auditar fallo
                     await _auditoriaRepo.SaveEntityAsync(new RegistroAuditoria
                     {
-                        ActorId = 1, // ID Sistema o Admin
+                        ActorId = 1,
                         ModuloAfectado = "Planificación",
                         AccionRealizada = "Creación de Viaje",
                         ResultadoExitoso = false,
@@ -56,11 +54,7 @@ namespace SGA_ITLA.Application.Services.Transporte
                         CreationDate = DateTime.Now
                     });
 
-                    return new OperationResult
-                    {
-                        Success = false,
-                        Message = "Rechazado (RN-OPE): El autobús o el conductor ya se encuentran asignados a otro viaje activo en ese mismo horario."
-                    };
+                    return new OperationResult { Success = false, Message = "Rechazado (RN-OPE): El autobús o el conductor ya se encuentran asignados a otro viaje activo." };
                 }
 
                 viaje.Estado = EstadoViaje.Programado;
@@ -68,7 +62,6 @@ namespace SGA_ITLA.Application.Services.Transporte
 
                 if (resultadoGuardado.Success)
                 {
-                    // CUMPLIMIENTO RN-AUD: Auditar éxito
                     await _auditoriaRepo.SaveEntityAsync(new RegistroAuditoria
                     {
                         ActorId = 1,
@@ -78,13 +71,8 @@ namespace SGA_ITLA.Application.Services.Transporte
                         ResultadoExitoso = true,
                         CreationDate = DateTime.Now
                     });
-
                     _logger.LogInformation($"Viaje planificado exitosamente en la base de datos con ID {viaje.Id}.");
-                    return new OperationResult
-                    {
-                        Success = true,
-                        Message = $"Viaje planificado exitosamente. El ID asignado es: {viaje.Id}"
-                    };
+                    return new OperationResult { Success = true, Message = $"Viaje planificado exitosamente. El ID asignado es: {viaje.Id}" };
                 }
 
                 return resultadoGuardado;
@@ -96,19 +84,62 @@ namespace SGA_ITLA.Application.Services.Transporte
             }
         }
 
-        public async Task<OperationResult> ValidarAbordajeAsync(int viajeId, int estudianteId)
+        public async Task<OperationResult> ActualizarViajeAsync(Viaje viaje)
         {
-            return new OperationResult { Success = false, Message = "Use AccesoService para validar abordajes." };
+            var originalResult = await _viajeRepo.GetByIdAsync(viaje.Id);
+            if (!originalResult.Success || originalResult.Data == null) return new OperationResult { Success = false, Message = "Viaje no encontrado." };
+
+            var viajeOriginal = (Viaje)originalResult.Data;
+            viajeOriginal.Estado = viaje.Estado;
+            return await _viajeRepo.UpdateEntityAsync(viajeOriginal);
         }
 
-        public async Task<OperationResult> ActualizarViajeAsync(SaveViajeDto dto)
+        public async Task<OperationResult> EliminarViajeAsync(int id)
         {
-            return new OperationResult { Success = true, Message = "Viaje actualizado correctamente." };
+            var originalResult = await _viajeRepo.GetByIdAsync(id);
+            if (!originalResult.Success || originalResult.Data == null) return new OperationResult { Success = false, Message = "Viaje no encontrado." };
+
+            var viaje = (Viaje)originalResult.Data;
+            if (viaje.Estado == EstadoViaje.EnCurso || viaje.Estado == EstadoViaje.Completado)
+            {
+                return new OperationResult { Success = false, Message = $"No se puede eliminar un viaje en estado '{viaje.Estado}'." };
+            }
+
+            return await _viajeRepo.DeleteEntityAsync(viaje);
         }
 
-        public async Task<OperationResult> EliminarViajeLogicoAsync(int id)
+        public async Task<OperationResult> CambiarEstadoViajeAsync(int viajeId, int nuevoEstadoId)
         {
-            return new OperationResult { Success = true, Message = "Viaje eliminado exitosamente (Deleted = true)." };
+            var originalResult = await _viajeRepo.GetByIdAsync(viajeId);
+            if (!originalResult.Success || originalResult.Data == null) return new OperationResult { Success = false, Message = "Viaje no encontrado." };
+
+            var viajeOriginal = (Viaje)originalResult.Data;
+            var estadoAnterior = viajeOriginal.Estado;
+            var nuevoEstado = (EstadoViaje)nuevoEstadoId;
+
+            bool transitionValid = false;
+            if (estadoAnterior == EstadoViaje.Programado && (nuevoEstado == EstadoViaje.EnCurso || nuevoEstado == EstadoViaje.Cancelado || nuevoEstado == EstadoViaje.Retrasado)) transitionValid = true;
+            else if (estadoAnterior == EstadoViaje.EnCurso && (nuevoEstado == EstadoViaje.Completado || nuevoEstado == EstadoViaje.Retrasado)) transitionValid = true;
+            else if (estadoAnterior == EstadoViaje.Retrasado && (nuevoEstado == EstadoViaje.EnCurso || nuevoEstado == EstadoViaje.Cancelado || nuevoEstado == EstadoViaje.Programado)) transitionValid = true;
+
+            if (!transitionValid) return new OperationResult { Success = false, Message = $"Transición de estado inválida de {estadoAnterior} a {nuevoEstado}." };
+
+            viajeOriginal.Estado = nuevoEstado;
+            var result = await _viajeRepo.UpdateEntityAsync(viajeOriginal);
+
+            if (result.Success)
+            {
+                await _auditoriaRepo.SaveEntityAsync(new RegistroAuditoria
+                {
+                    ActorId = 1,
+                    ModuloAfectado = "Operaciones",
+                    AccionRealizada = "Actualización de Estado",
+                    Detalles = $"Viaje #{viajeId} pasó de '{estadoAnterior}' a '{nuevoEstado}'.",
+                    ResultadoExitoso = true,
+                    CreationDate = DateTime.Now
+                });
+            }
+            return result;
         }
     }
 }

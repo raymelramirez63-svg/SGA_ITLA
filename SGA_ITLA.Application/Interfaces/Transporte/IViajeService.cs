@@ -8,5 +8,8 @@ namespace SGA_ITLA.Application.Interfaces.Transporte
     {
         Task<OperationResult> ObtenerViajesDetalladosAsync();
         Task<OperationResult> RegistrarViajeAsync(Viaje viaje);
+        Task<OperationResult> ActualizarViajeAsync(Viaje viaje);
+        Task<OperationResult> EliminarViajeAsync(int id);
+        Task<OperationResult> CambiarEstadoViajeAsync(int viajeId, int nuevoEstadoId);
     }
 }

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Application.Dtos.Transporte.Viajes;
 using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Domain.Entities.Transporte;
-using SGA_ITLA.Domain.Entities.Auditoria;
 using SGA_ITLA.Domain.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -17,15 +16,11 @@ namespace SGA_ITLA.WebApi.Controllers
     {
         private readonly IViajeService _viajeService;
         private readonly IHorarioRepository _horarioRepo;
-        private readonly IViajeRepository _viajeRepo;
-        private readonly IAuditoriaRepository _auditoriaRepo;
 
-        public ViajeController(IViajeService viajeService, IHorarioRepository horarioRepo, IViajeRepository viajeRepo, IAuditoriaRepository auditoriaRepo)
+        public ViajeController(IViajeService viajeService, IHorarioRepository horarioRepo)
         {
             _viajeService = viajeService;
             _horarioRepo = horarioRepo;
-            _viajeRepo = viajeRepo;
-            _auditoriaRepo = auditoriaRepo;
         }
 
         [HttpGet("GetViajesActivos")]
@@ -57,11 +52,7 @@ namespace SGA_ITLA.WebApi.Controllers
 
             var result = await _viajeService.RegistrarViajeAsync(nuevoViaje);
 
-            if (!result.Success)
-            {
-                return BadRequest(result);
-            }
-
+            if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
 
@@ -70,14 +61,8 @@ namespace SGA_ITLA.WebApi.Controllers
         {
             if (viaje == null || viaje.Id == 0) return BadRequest(new { success = false, message = "Datos inválidos." });
 
-            var originalResult = await _viajeRepo.GetByIdAsync(viaje.Id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound(new { success = false, message = "Viaje no encontrado." });
-
-            var viajeOriginal = (Viaje)originalResult.Data;
-            viajeOriginal.Estado = viaje.Estado;
-
-            var result = await _viajeRepo.UpdateEntityAsync(viajeOriginal);
-            return Ok(result);
+            var result = await _viajeService.ActualizarViajeAsync(viaje);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpDelete("DeleteViaje/{id}")]
@@ -85,24 +70,8 @@ namespace SGA_ITLA.WebApi.Controllers
         {
             if (id <= 0) return BadRequest(new { success = false, message = "El ID proporcionado no es válido." });
 
-            var originalResult = await _viajeRepo.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound(new { success = false, message = "Viaje no encontrado." });
-
-            var viaje = (Viaje)originalResult.Data;
-
-            // 🔥 VALIDACIÓN: No borrar viajes que están en curso o completados
-            if (viaje.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.EnCurso || viaje.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.Completado)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    errorType = "EstadoInvalido",
-                    message = $"No se puede eliminar un viaje en estado '{viaje.Estado}'. Solo se pueden cancelar viajes en estado Programado."
-                });
-            }
-
-            var result = await _viajeRepo.DeleteEntityAsync(viaje);
-            return Ok(result);
+            var result = await _viajeService.EliminarViajeAsync(id);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPatch("CambiarEstado/{viajeId}")]
@@ -110,30 +79,8 @@ namespace SGA_ITLA.WebApi.Controllers
         {
             if (viajeId <= 0 || nuevoEstadoId <= 0 || nuevoEstadoId > 5) return BadRequest(new { success = false, message = "ID o estado inválido." });
 
-            var originalResult = await _viajeRepo.GetByIdAsync(viajeId);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound(new { success = false, message = "Viaje no encontrado." });
-
-            var viajeOriginal = (Viaje)originalResult.Data;
-            var estadoAnterior = viajeOriginal.Estado;
-            viajeOriginal.Estado = (SGA_ITLA.Domain.Enums.EstadoViaje)nuevoEstadoId;
-
-            var result = await _viajeRepo.UpdateEntityAsync(viajeOriginal);
-
-            if (result.Success)
-            {
-                await _auditoriaRepo.SaveEntityAsync(new RegistroAuditoria
-                {
-                    ActorId = 1,
-                    ModuloAfectado = "Operaciones",
-                    AccionRealizada = "Actualización de Estado",
-                    Detalles = $"Viaje #{viajeId} pasó de '{estadoAnterior}' a '{viajeOriginal.Estado}'.",
-                    ResultadoExitoso = true,
-                    CreationDate = DateTime.Now
-                });
-
-                return Ok(new { success = true, message = "Estado del viaje actualizado correctamente.", auditoria = $"Acción registrada el: {DateTime.Now}" });
-            }
-            return BadRequest(result);
+            var result = await _viajeService.CambiarEstadoViajeAsync(viajeId, nuevoEstadoId);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost("ReportarIncidencia")]
@@ -142,12 +89,5 @@ namespace SGA_ITLA.WebApi.Controllers
             if (incidencia == null || incidencia.ViajeId <= 0) return BadRequest(new { success = false, message = "Datos inválidos." });
             return Ok(new { success = true, message = "Incidencia reportada. Administrador notificado." });
         }
-    }
-
-    public class IncidenciaDto
-    {
-        public int ViajeId { get; set; }
-        public string? TipoIncidencia { get; set; }
-        public string? Descripcion { get; set; }
     }
 }

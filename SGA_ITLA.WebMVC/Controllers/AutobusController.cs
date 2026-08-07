@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Application.Dtos.Catalogo;
-using SGA_ITLA.Application.Interfaces.Catalogo;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Domain.Enums;
-using SGA_ITLA.Domain.Interfaces;
-using SGA_ITLA.Infraestructure.Repositories;
 using SGA_ITLA.WebMVC.Models;
+using SGA_ITLA.WebMVC.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,24 +14,20 @@ namespace SGA_ITLA.WebMVC.Controllers
     [Authorize]
     public class AutobusController : Controller
     {
-        private readonly ICatalogoService _catalogoService;
-        private readonly IAutobusRepository _autobusRepository;
-        private readonly IViajeRepository _viajeRepo; 
+        private readonly ICatalogoApiService _catalogoApi;
+        private readonly ITransporteApiService _transporteApi;
 
-        public AutobusController(ICatalogoService catalogoService, IAutobusRepository autobusRepository, IViajeRepository viajeRepo)
+        // 🔥 Inyectamos solo servicios HTTP, respetando el diseño orientado a servicios
+        public AutobusController(ICatalogoApiService catalogoApi, ITransporteApiService transporteApi)
         {
-            _catalogoService = catalogoService;
-            _autobusRepository = autobusRepository;
-            _viajeRepo = viajeRepo;
+            _catalogoApi = catalogoApi;
+            _transporteApi = transporteApi;
         }
 
         public async Task<IActionResult> Index()
         {
-            var result = await _autobusRepository.GetAllAsync();
-            var autobuses = result.Data as IEnumerable<Autobus> ?? new List<Autobus>();
-
-            var viajesResult = await _viajeRepo.GetViajesDetalladosAsync();
-            var viajes = viajesResult.Data as IEnumerable<Viaje> ?? new List<Viaje>();
+            var autobuses = await _catalogoApi.ObtenerAutobusesAsync();
+            var viajes = await _transporteApi.ObtenerViajesAsync();
 
             var lista = autobuses.Select(a => new AutobusListItemVM
             {
@@ -53,10 +47,7 @@ namespace SGA_ITLA.WebMVC.Controllers
         }
 
         [Authorize(Roles = "AdminTransporte")]
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -65,36 +56,29 @@ namespace SGA_ITLA.WebMVC.Controllers
         {
             if (!ModelState.IsValid) return View(dto);
 
-            var autobus = new Autobus
-            {
-                Placa = dto.Placa,
-                CapacidadMaxima = dto.CapacidadMaxima,
-                EstadoOperativo = (EstadoAutobus)dto.EstadoOperativo
-            };
+            // Enviamos el DTO a la API para creación
+            var exito = await _catalogoApi.RegistrarAutobusAsync(dto);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var result = await _catalogoService.RegistrarAutobusAsync(autobus);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al registrar el autobús en la API.");
             return View(dto);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _autobusRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Autobus);
+            var autobuses = await _catalogoApi.ObtenerAutobusesAsync();
+            var bus = autobuses.FirstOrDefault(a => a.Id == id);
+            if (bus == null) return NotFound();
+            return View(bus);
         }
 
         [Authorize(Roles = "AdminTransporte")]
         public async Task<IActionResult> Edit(int id)
         {
-            var result = await _autobusRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Autobus);
+            var autobuses = await _catalogoApi.ObtenerAutobusesAsync();
+            var bus = autobuses.FirstOrDefault(a => a.Id == id);
+            if (bus == null) return NotFound();
+            return View(bus);
         }
 
         [HttpPost]
@@ -102,31 +86,23 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte")]
         public async Task<IActionResult> Edit(Autobus modelo)
         {
+            ModelState.Remove("CreationDate");
             if (!ModelState.IsValid) return View(modelo);
 
-            var originalResult = await _autobusRepository.GetByIdAsync(modelo.Id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _catalogoApi.ActualizarAutobusAsync(modelo);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var autobusOriginal = originalResult.Data as Autobus;
-            autobusOriginal!.Placa = modelo.Placa;
-            autobusOriginal.CapacidadMaxima = modelo.CapacidadMaxima;
-            autobusOriginal.EstadoOperativo = modelo.EstadoOperativo;
-
-            var result = await _autobusRepository.UpdateEntityAsync(autobusOriginal);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al actualizar el autobús en la API.");
             return View(modelo);
         }
 
         [Authorize(Roles = "AdminTransporte")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _autobusRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Autobus);
+            var autobuses = await _catalogoApi.ObtenerAutobusesAsync();
+            var bus = autobuses.FirstOrDefault(a => a.Id == id);
+            if (bus == null) return NotFound();
+            return View(bus);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -134,15 +110,12 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var originalResult = await _autobusRepository.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var exito = await _catalogoApi.EliminarAutobusAsync(id);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            var result = await _autobusRepository.DeleteEntityAsync((originalResult.Data as Autobus)!);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
-            return View((originalResult.Data as Autobus)!);
+            ModelState.AddModelError("", "No se pudo eliminar el autobús mediante la API.");
+            var autobuses = await _catalogoApi.ObtenerAutobusesAsync();
+            return View(autobuses.FirstOrDefault(a => a.Id == id));
         }
     }
 }

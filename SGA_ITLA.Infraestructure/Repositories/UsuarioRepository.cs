@@ -19,7 +19,7 @@ namespace SGA_ITLA.Infraestructure.Repositories
                 .AnyAsync(u => u.IdentificacionInstitucional == identificacion);
         }
 
-        public async Task<Usuario> GetByEmailAsync(string email)
+        public async Task<Usuario?> GetByEmailAsync(string email)
         {
             return await _context.Set<Usuario>()
                 .FirstOrDefaultAsync(u => u.Email == email);

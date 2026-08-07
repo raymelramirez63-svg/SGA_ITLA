@@ -6,10 +6,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using SGA_ITLA.Application.Interfaces.Usuarios; 
+using SGA_ITLA.Application.Interfaces.Usuarios;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Domain.Enums;
-using SGA_ITLA.Domain.Interfaces; 
+using SGA_ITLA.Domain.Interfaces;
 
 namespace SGA_ITLA.WebApi.Controllers
 {
@@ -69,7 +69,7 @@ namespace SGA_ITLA.WebApi.Controllers
                     IdentificacionInstitucional = dto.IdentificacionInstitucional,
                     NombreCompleto = dto.NombreCompleto,
                     Email = dto.Email,
-                    PasswordHash = dto.Password,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     Rol = dto.Rol,
                     IsActive = true
                 };
@@ -121,4 +121,3 @@ namespace SGA_ITLA.WebApi.Controllers
         public RolUsuario Rol { get; set; }
     }
 }
-

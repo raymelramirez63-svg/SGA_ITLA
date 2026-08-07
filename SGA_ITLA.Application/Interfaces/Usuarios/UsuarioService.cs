@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using SGA_ITLA.Application.Interfaces.Usuarios; 
+using SGA_ITLA.Application.Interfaces.Usuarios;
 using SGA_ITLA.Domain.Entities.Usuarios;
-using SGA_ITLA.Domain.Interfaces; 
+using SGA_ITLA.Domain.Interfaces;
 
-namespace SGA_ITLA.Application.Services.Usuarios 
+namespace SGA_ITLA.Application.Services.Usuarios
 {
     public class UsuarioService : IUsuarioService
     {
@@ -18,7 +18,7 @@ namespace SGA_ITLA.Application.Services.Usuarios
         {
             var usuario = await _usuarioRepository.GetByEmailAsync(email);
 
-            if (usuario != null && usuario.PasswordHash == password && usuario.IsActive)
+            if (usuario != null && BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash) && usuario.IsActive)
             {
                 return usuario;
             }

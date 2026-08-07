@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Domain.Entities.Usuarios;
-using SGA_ITLA.Domain.Enums;
-using SGA_ITLA.Domain.Interfaces;
-using SGA_ITLA.Infraestructure.Repositories;
+using SGA_ITLA.WebMVC.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,26 +10,21 @@ namespace SGA_ITLA.WebMVC.Controllers
     [Authorize(Roles = "AdminTransporte")]
     public class UsuarioController : Controller
     {
-        private readonly IUsuarioRepository _usuarioRepository;
-        private readonly IViajeRepository _viajeRepo; 
+        private readonly IUsuarioApiService _usuarioApi;
 
-        public UsuarioController(IUsuarioRepository usuarioRepository, IViajeRepository viajeRepo)
+        // Inyectamos el servicio HTTP, respetando los lineamientos
+        public UsuarioController(IUsuarioApiService usuarioApi)
         {
-            _usuarioRepository = usuarioRepository;
-            _viajeRepo = viajeRepo;
+            _usuarioApi = usuarioApi;
         }
 
         public async Task<IActionResult> Index()
         {
-            var result = await _usuarioRepository.GetAllAsync();
-            var lista = result.Data as IEnumerable<Usuario> ?? new List<Usuario>();
+            var lista = await _usuarioApi.ObtenerUsuariosAsync();
             return View(lista);
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -42,28 +35,25 @@ namespace SGA_ITLA.WebMVC.Controllers
 
             if (!ModelState.IsValid) return View(modelo);
 
-            var result = await _usuarioRepository.SaveEntityAsync(modelo);
+            var exito = await _usuarioApi.RegistrarUsuarioAsync(modelo);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al intentar registrar el usuario a través de la API.");
             return View(modelo);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _usuarioRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Usuario);
+            var usuario = await _usuarioApi.ObtenerUsuarioPorIdAsync(id);
+            if (usuario == null) return NotFound();
+            return View(usuario);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var result = await _usuarioRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Usuario);
+            var usuario = await _usuarioApi.ObtenerUsuarioPorIdAsync(id);
+            if (usuario == null) return NotFound();
+            return View(usuario);
         }
 
         [HttpPost]
@@ -71,14 +61,12 @@ namespace SGA_ITLA.WebMVC.Controllers
         public async Task<IActionResult> Edit(Usuario modelo)
         {
             ModelState.Remove("CreationDate");
-
             if (!ModelState.IsValid) return View(modelo);
 
-            var originalResult = await _usuarioRepository.GetByIdAsync(modelo.Id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var usuarioOriginal = await _usuarioApi.ObtenerUsuarioPorIdAsync(modelo.Id);
+            if (usuarioOriginal == null) return NotFound();
 
-            var usuarioOriginal = originalResult.Data as Usuario;
-            usuarioOriginal!.NombreCompleto = modelo.NombreCompleto;
+            usuarioOriginal.NombreCompleto = modelo.NombreCompleto;
             usuarioOriginal.IdentificacionInstitucional = modelo.IdentificacionInstitucional;
             usuarioOriginal.Email = modelo.Email;
             usuarioOriginal.Rol = modelo.Rol;
@@ -88,47 +76,30 @@ namespace SGA_ITLA.WebMVC.Controllers
                 usuarioOriginal.PasswordHash = modelo.PasswordHash;
             }
 
-            var result = await _usuarioRepository.UpdateEntityAsync(usuarioOriginal);
+            var exito = await _usuarioApi.ActualizarUsuarioAsync(usuarioOriginal);
+            if (exito) return RedirectToAction(nameof(Index));
 
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", "Error al intentar actualizar la cuenta en la API.");
             return View(modelo);
         }
 
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _usuarioRepository.GetByIdAsync(id);
-            if (!result.Success || result.Data == null) return NotFound();
-
-            return View(result.Data as Usuario);
+            var usuario = await _usuarioApi.ObtenerUsuarioPorIdAsync(id);
+            if (usuario == null) return NotFound();
+            return View(usuario);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var originalResult = await _usuarioRepository.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound();
+            var mensajeRespuesta = await _usuarioApi.EliminarUsuarioAsync(id);
 
-            var usuario = (originalResult.Data as Usuario)!;
+            if (mensajeRespuesta == "OK") return RedirectToAction(nameof(Index));
 
-            if (usuario.Rol == RolUsuario.Conductor)
-            {
-                bool asignado = await _viajeRepo.ConductorTieneViajesActivosGlobalAsync(id);
-
-                if (asignado)
-                {
-                    ModelState.AddModelError("", "No se puede suspender este conductor: tiene viajes programados o en curso asignados.");
-                    return View(usuario);
-                }
-            }
-
-            var result = await _usuarioRepository.DeleteEntityAsync(usuario);
-
-            if (result.Success) return RedirectToAction(nameof(Index));
-
-            ModelState.AddModelError("", result.Message);
+            ModelState.AddModelError("", mensajeRespuesta);
+            var usuario = await _usuarioApi.ObtenerUsuarioPorIdAsync(id);
             return View(usuario);
         }
     }
