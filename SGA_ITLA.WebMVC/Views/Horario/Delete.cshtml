@@ -11,7 +11,7 @@
 
         <div class="bg-light p-3 rounded mb-4 text-center">
             <h4 class="text-primary m-0">@Model.HoraSalida.ToString(@"hh\:mm")</h4>
-            <small class="text-muted">Ruta #@Model.RutaId | @Model.DiasOperacion</small>
+            <small class="text-muted">@(Model.Ruta != null ? Model.Ruta.NombreRuta : $"Ruta #{Model.RutaId}") | @Model.DiasOperacion</small>
         </div>
 
         <form asp-action="Delete" method="post">

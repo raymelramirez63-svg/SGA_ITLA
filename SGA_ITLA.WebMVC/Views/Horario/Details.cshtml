@@ -12,7 +12,9 @@
             <dd class="col-sm-7 fw-bold">#@Model.Id</dd>
 
             <dt class="col-sm-5 text-muted">Ruta Asociada:</dt>
-            <dd class="col-sm-7 text-primary fw-bold">Ruta #@Model.RutaId</dd>
+            <dd class="col-sm-7 text-primary fw-bold">
+                @(Model.Ruta != null ? Model.Ruta.NombreRuta : $"Ruta #{Model.RutaId}")
+            </dd>
 
             <dt class="col-sm-5 text-muted">Días:</dt>
             <dd class="col-sm-7">@Model.DiasOperacion</dd>

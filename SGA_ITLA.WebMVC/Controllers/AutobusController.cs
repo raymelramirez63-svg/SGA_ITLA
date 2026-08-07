@@ -17,7 +17,6 @@ namespace SGA_ITLA.WebMVC.Controllers
         private readonly ICatalogoApiService _catalogoApi;
         private readonly ITransporteApiService _transporteApi;
 
-        // 🔥 Inyectamos solo servicios HTTP, respetando el diseño orientado a servicios
         public AutobusController(ICatalogoApiService catalogoApi, ITransporteApiService transporteApi)
         {
             _catalogoApi = catalogoApi;
@@ -56,7 +55,6 @@ namespace SGA_ITLA.WebMVC.Controllers
         {
             if (!ModelState.IsValid) return View(dto);
 
-            // Enviamos el DTO a la API para creación
             var exito = await _catalogoApi.RegistrarAutobusAsync(dto);
             if (exito) return RedirectToAction(nameof(Index));
 
@@ -110,10 +108,12 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var exito = await _catalogoApi.EliminarAutobusAsync(id);
-            if (exito) return RedirectToAction(nameof(Index));
+            var mensajeRespuesta = await _catalogoApi.EliminarAutobusAsync(id);
 
-            ModelState.AddModelError("", "No se pudo eliminar el autobús mediante la API.");
+            if (mensajeRespuesta == "OK") return RedirectToAction(nameof(Index));
+
+            ModelState.AddModelError("", mensajeRespuesta);
+
             var autobuses = await _catalogoApi.ObtenerAutobusesAsync();
             return View(autobuses.FirstOrDefault(a => a.Id == id));
         }

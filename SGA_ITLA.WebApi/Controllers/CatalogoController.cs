@@ -6,6 +6,8 @@ using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Domain.Enums;
 using SGA_ITLA.Domain.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
@@ -98,7 +100,10 @@ namespace SGA_ITLA.WebApi.Controllers
         }
 
         [HttpGet("rutas")]
-        public async Task<IActionResult> GetRutas() => Ok(await _service.ObtenerRutasAsync());
+        public async Task<IActionResult> GetRutas()
+        {
+            return Ok(await _service.ObtenerRutasAsync());
+        }
 
         [HttpGet("autobuses")]
         public async Task<IActionResult> GetAutobuses()
@@ -111,6 +116,12 @@ namespace SGA_ITLA.WebApi.Controllers
         public async Task<IActionResult> GetConductores()
         {
             var result = await _usuarioRepo.GetAllAsync();
+
+            if (result.Success && result.Data is IEnumerable<Usuario> usuarios)
+            {
+                result.Data = usuarios.Where(u => u.Rol == RolUsuario.Conductor).ToList();
+            }
+
             return Ok(result);
         }
 
@@ -172,6 +183,15 @@ namespace SGA_ITLA.WebApi.Controllers
         {
             if (id <= 0) return BadRequest(new { success = false, message = "ID inválido." });
 
+            var viajesRes = await _viajeRepo.GetAllAsync();
+            if (viajesRes.Success && viajesRes.Data is IEnumerable<Viaje> viajes)
+            {
+                if (viajes.Any(v => v.AutobusId == id && (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso)))
+                {
+                    return BadRequest(new { success = false, errorType = "DependencyConflict", message = "No se puede eliminar la unidad: tiene viajes programados o en curso." });
+                }
+            }
+
             var originalResult = await _autobusRepo.GetByIdAsync(id);
             if (!originalResult.Success || originalResult.Data == null) return NotFound(new { success = false, message = "Autobús no encontrado." });
 
@@ -200,10 +220,6 @@ namespace SGA_ITLA.WebApi.Controllers
             if (id <= 0)
                 return BadRequest(new { success = false, errorType = "ValidationError", message = "ID inválido." });
 
-            var originalResult = await _rutaRepo.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null)
-                return NotFound(new { success = false, errorType = "NotFound", message = "Ruta no encontrada." });
-
             bool tieneViajesActivos = await _viajeRepo.RutaTieneViajesActivosAsync(id);
 
             if (tieneViajesActivos)
@@ -215,6 +231,10 @@ namespace SGA_ITLA.WebApi.Controllers
                     message = "No se puede eliminar la ruta: tiene viajes asociados programados o en curso."
                 });
             }
+
+            var originalResult = await _rutaRepo.GetByIdAsync(id);
+            if (!originalResult.Success || originalResult.Data == null)
+                return NotFound(new { success = false, errorType = "NotFound", message = "Ruta no encontrada." });
 
             var result = await _rutaRepo.DeleteEntityAsync((originalResult.Data as Ruta)!);
             return Ok(result);

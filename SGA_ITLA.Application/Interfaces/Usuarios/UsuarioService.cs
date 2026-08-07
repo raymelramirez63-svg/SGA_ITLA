@@ -18,7 +18,7 @@ namespace SGA_ITLA.Application.Services.Usuarios
         {
             var usuario = await _usuarioRepository.GetByEmailAsync(email);
 
-            if (usuario != null && BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash) && usuario.IsActive)
+            if (usuario != null && usuario.PasswordHash == password && usuario.IsActive)
             {
                 return usuario;
             }

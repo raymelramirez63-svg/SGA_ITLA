@@ -69,7 +69,7 @@ namespace SGA_ITLA.WebApi.Controllers
                     IdentificacionInstitucional = dto.IdentificacionInstitucional,
                     NombreCompleto = dto.NombreCompleto,
                     Email = dto.Email,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    PasswordHash = dto.Password, 
                     Rol = dto.Rol,
                     IsActive = true
                 };

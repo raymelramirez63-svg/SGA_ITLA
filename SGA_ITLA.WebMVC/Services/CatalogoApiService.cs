@@ -49,10 +49,14 @@ namespace SGA_ITLA.WebMVC.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> EliminarRutaAsync(int id)
+        public async Task<string> EliminarRutaAsync(int id)
         {
             var response = await _httpClient.DeleteAsync($"Catalogo/ruta/{id}");
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode) return "OK";
+
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<OperationResultApi<object>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return result?.Message ?? "Error al intentar desactivar la ruta.";
         }
 
         public async Task<IEnumerable<Autobus>> ObtenerAutobusesAsync()
@@ -91,10 +95,14 @@ namespace SGA_ITLA.WebMVC.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> EliminarAutobusAsync(int id)
+        public async Task<string> EliminarAutobusAsync(int id)
         {
             var response = await _httpClient.DeleteAsync($"Catalogo/autobus/{id}");
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode) return "OK";
+
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<OperationResultApi<object>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return result?.Message ?? "Error al intentar desactivar la unidad.";
         }
     }
 

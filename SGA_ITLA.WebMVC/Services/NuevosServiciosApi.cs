@@ -81,8 +81,17 @@ namespace SGA_ITLA.WebMVC.Services
             return new List<SolicitudAutorizacion>();
         }
 
-        public async Task<bool> CrearSolicitudAsync(SGA_ITLA.Domain.Enums.TipoAutorizacion tipo, string? comentario) =>
-            (await _httpClient.PostAsJsonAsync("Solicitud/Crear", new { TipoSolicitado = tipo, Comentario = comentario })).IsSuccessStatusCode;
+        public async Task<bool> CrearSolicitudAsync(SGA_ITLA.Domain.Enums.TipoAutorizacion tipo, string? comentario)
+        {
+            var response = await _httpClient.PostAsJsonAsync("Solicitud/Crear", new { TipoSolicitado = tipo, Comentario = comentario });
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<OperationResultApi<object>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return result?.Success ?? false;
+            }
+            return false;
+        }
 
         public async Task<bool> AprobarSolicitudAsync(int id, int pagoId, decimal? monto) =>
             (await _httpClient.PostAsJsonAsync($"Solicitud/Aprobar/{id}", new { PagoId = pagoId, Monto = monto })).IsSuccessStatusCode;
@@ -91,3 +100,4 @@ namespace SGA_ITLA.WebMVC.Services
             (await _httpClient.PostAsJsonAsync($"Solicitud/Rechazar/{id}", new { Motivo = motivo })).IsSuccessStatusCode;
     }
 }
+

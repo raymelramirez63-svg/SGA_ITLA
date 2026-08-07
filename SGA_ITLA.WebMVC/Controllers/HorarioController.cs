@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Application.Dtos.Catalogo;
 using SGA_ITLA.WebMVC.Services;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
@@ -22,8 +24,15 @@ namespace SGA_ITLA.WebMVC.Controllers
         // 1. VISTA: INDEX
         public async Task<IActionResult> Index()
         {
-            var lista = await _transporteApi.ObtenerHorariosAsync();
-            return View(lista);
+            var horarios = await _transporteApi.ObtenerHorariosAsync();
+            var rutas = await _catalogoApi.ObtenerRutasAsync();
+
+            foreach (var h in horarios)
+            {
+                h.Ruta = rutas.FirstOrDefault(r => r.Id == h.RutaId);
+            }
+
+            return View(horarios);
         }
 
         // 2. VISTA: CREATE (Solo Administradores)
@@ -59,6 +68,9 @@ namespace SGA_ITLA.WebMVC.Controllers
         {
             var horario = await _transporteApi.ObtenerHorarioPorIdAsync(id);
             if (horario == null) return NotFound();
+
+            // 🔥 SOLUCIÓN: Buscar y asignar la ruta para los detalles
+            horario.Ruta = await _catalogoApi.ObtenerRutaPorIdAsync(horario.RutaId);
 
             return View(horario);
         }
@@ -97,12 +109,13 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(modelo);
         }
 
-        // 5. VISTA: DELETE (Solo Administradores)
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             var horario = await _transporteApi.ObtenerHorarioPorIdAsync(id);
             if (horario == null) return NotFound();
+
+            horario.Ruta = await _catalogoApi.ObtenerRutaPorIdAsync(horario.RutaId);
 
             return View(horario);
         }

@@ -20,7 +20,7 @@
             <table class="corp-table">
                 <thead>
                     <tr>
-                        <th>ID Ruta</th>
+                        <th>Ruta Asignada</th>
                         <th>Días de Operación</th>
                         <th>Hora de Salida</th>
                         <th style="text-align: right;">Acciones</th>
@@ -32,7 +32,11 @@
                         foreach (var item in Model)
                         {
                             <tr>
-                                <td style="font-weight: 600; color: #2563eb;">Ruta #@item.RutaId</td>
+                                <td style="font-weight: 600; color: #2563eb;">
+                                    <i class="bi bi-signpost-split-fill me-1"></i>
+                                    @(item.Ruta != null ? item.Ruta.NombreRuta : $"Ruta #{item.RutaId}")
+                                </td>
+
                                 <td style="font-weight: 500; color: #374151;">@item.DiasOperacion</td>
                                 <td><span class="type-badge bg-dark text-white"><i class="bi bi-clock me-1"></i>@item.HoraSalida.ToString(@"hh\:mm")</span></td>
                                 <td style="text-align: right;">

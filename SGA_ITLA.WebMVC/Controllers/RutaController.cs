@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Application.Dtos.Catalogo;
-using SGA_ITLA.WebMVC.Services; // Usamos nuestro nuevo servicio API
+using SGA_ITLA.WebMVC.Services;
+using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
@@ -11,20 +12,17 @@ namespace SGA_ITLA.WebMVC.Controllers
     {
         private readonly ICatalogoApiService _apiService;
 
-        // Inyección del servicio HTTP (Cumpliendo los lineamientos)
         public RutaController(ICatalogoApiService apiService)
         {
             _apiService = apiService;
         }
 
-        // 1. VISTA: INDEX (Listado)
         public async Task<IActionResult> Index()
         {
             var lista = await _apiService.ObtenerRutasAsync();
             return View(lista);
         }
 
-        // 2. VISTA: CREATE (Solo Administradores)
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public IActionResult Create()
         {
@@ -96,11 +94,11 @@ namespace SGA_ITLA.WebMVC.Controllers
         [Authorize(Roles = "AdminTransporte,Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var exito = await _apiService.EliminarRutaAsync(id);
+            var mensajeRespuesta = await _apiService.EliminarRutaAsync(id);
 
-            if (exito) return RedirectToAction(nameof(Index));
+            if (mensajeRespuesta == "OK") return RedirectToAction(nameof(Index));
 
-            ModelState.AddModelError("", "Ocurrió un error al intentar eliminar la ruta mediante la API.");
+            ModelState.AddModelError("", mensajeRespuesta);
 
             var ruta = await _apiService.ObtenerRutaPorIdAsync(id);
             return View(ruta);

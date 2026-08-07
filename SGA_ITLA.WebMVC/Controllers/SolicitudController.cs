@@ -1,92 +1,71 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SGA_ITLA.Application.Interfaces.Autorizaciones;
-using SGA_ITLA.Domain.Base; // 🔥 CORRECCIÓN 1: Importar OperationResult
 using SGA_ITLA.Domain.Enums;
-using SGA_ITLA.Domain.Interfaces;
-using System.Security.Claims;
+using SGA_ITLA.WebMVC.Services;
 using System.Threading.Tasks;
 
-namespace SGA_ITLA.WebApi.Controllers
+namespace SGA_ITLA.WebMVC.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SolicitudController : ControllerBase
+    public class SolicitudController : Controller
     {
-        private readonly ISolicitudService _solicitudService;
-        private readonly ISolicitudAutorizacionRepository _solicitudRepo;
-        private readonly IUsuarioRepository _usuarioRepo;
+        private readonly ISolicitudApiService _solicitudApi;
 
-        public SolicitudController(ISolicitudService solicitudService, ISolicitudAutorizacionRepository solicitudRepo, IUsuarioRepository usuarioRepo)
+        public SolicitudController(ISolicitudApiService solicitudApi)
         {
-            _solicitudService = solicitudService;
-            _solicitudRepo = solicitudRepo;
-            _usuarioRepo = usuarioRepo;
+            _solicitudApi = solicitudApi;
         }
 
-        [HttpGet("MisSolicitudes")]
+        [HttpGet]
         [Authorize(Roles = "Estudiante")]
-        public async Task<IActionResult> MisSolicitudes()
+        public async Task<IActionResult> Index()
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var usuario = await _usuarioRepo.GetByEmailAsync(email!);
-            if (usuario == null) return Unauthorized();
-
-            var data = await _solicitudRepo.ObtenerPorUsuarioAsync(usuario.Id);
-
-            // 🔥 CORRECCIÓN 2: Envolver la data para que el MVC la entienda
-            return Ok(new OperationResult { Success = true, Data = data });
+            var lista = await _solicitudApi.ObtenerMisSolicitudesAsync();
+            return View(lista);
         }
 
-        [HttpGet("Pendientes")]
+        [HttpGet]
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Pendientes()
         {
-            var data = await _solicitudRepo.ObtenerPendientesAsync();
-
-            // 🔥 CORRECCIÓN 3: Envolver la data para que el MVC la entienda
-            return Ok(new OperationResult { Success = true, Data = data });
+            var lista = await _solicitudApi.ObtenerPendientesAsync();
+            return View(lista);
         }
 
-        [HttpPost("Crear")]
+        [HttpGet]
         [Authorize(Roles = "Estudiante")]
-        public async Task<IActionResult> Crear([FromBody] CrearSolicitudDto dto)
+        public IActionResult Create()
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var usuario = await _usuarioRepo.GetByEmailAsync(email!);
-            if (usuario == null) return Unauthorized();
-
-            return Ok(await _solicitudService.CrearSolicitudAsync(usuario.Id, dto.TipoSolicitado, dto.Comentario));
+            return View();
         }
 
-        [HttpPost("Aprobar/{id}")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Estudiante")]
+        public async Task<IActionResult> Create(TipoAutorizacion tipoSolicitado, string? comentario)
+        {
+            var exito = await _solicitudApi.CrearSolicitudAsync(tipoSolicitado, comentario);
+
+            if (exito) return RedirectToAction(nameof(Index));
+
+            ModelState.AddModelError("", "Ocurrió un error o ya tienes una solicitud de ticket pendiente.");
+            return View();
+        }
+
+        [HttpPost]
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
-        public async Task<IActionResult> Aprobar(int id, [FromBody] AprobarSolicitudDto dto)
+        public async Task<IActionResult> Aprobar(int id, int pagoId, decimal? monto)
         {
-            return Ok(await _solicitudService.AprobarSolicitudAsync(id, dto.PagoId, dto.Monto));
+            await _solicitudApi.AprobarSolicitudAsync(id, pagoId, monto);
+            return RedirectToAction(nameof(Pendientes));
         }
 
-        [HttpPost("Rechazar/{id}")]
+        [HttpPost]
         [Authorize(Roles = "AdminAutorizaciones,Administrador")]
-        public async Task<IActionResult> Rechazar(int id, [FromBody] RechazarSolicitudDto dto)
+        public async Task<IActionResult> Rechazar(int id, string motivo)
         {
-            return Ok(await _solicitudService.RechazarSolicitudAsync(id, dto.Motivo));
+            await _solicitudApi.RechazarSolicitudAsync(id, motivo);
+            return RedirectToAction(nameof(Pendientes));
         }
-    }
-
-    public class CrearSolicitudDto
-    {
-        public TipoAutorizacion TipoSolicitado { get; set; }
-        public string? Comentario { get; set; }
-    }
-    public class AprobarSolicitudDto
-    {
-        public int PagoId { get; set; }
-        public decimal? Monto { get; set; }
-    }
-    public class RechazarSolicitudDto
-    {
-        public string Motivo { get; set; } = string.Empty;
     }
 }
