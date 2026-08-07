@@ -4,6 +4,7 @@
     {
         public bool Success { get; set; } = true;
         public string Message { get; set; } = string.Empty;
+        public string? ErrorType { get; set; }   
         public object? Data { get; set; }
     }
 }

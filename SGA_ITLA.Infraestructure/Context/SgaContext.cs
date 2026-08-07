@@ -4,7 +4,6 @@ using SGA_ITLA.Domain.Entities.Autorizaciones;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using System.Linq;
-using System.Reflection.Emit;
 
 namespace SGA_ITLA.Infraestructure.Context
 {
@@ -22,6 +21,8 @@ namespace SGA_ITLA.Infraestructure.Context
         public DbSet<Incidencia> Incidencias { get; set; }
         public DbSet<RegistroAuditoria> RegistrosAuditoria { get; set; }
 
+        public DbSet<SolicitudAutorizacion> SolicitudesAutorizacion { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -32,6 +33,8 @@ namespace SGA_ITLA.Infraestructure.Context
             modelBuilder.Entity<Ruta>().HasQueryFilter(x => !x.Deleted);
             modelBuilder.Entity<Viaje>().HasQueryFilter(x => !x.Deleted);
             modelBuilder.Entity<RegistroAuditoria>().HasQueryFilter(x => !x.Deleted);
+
+            modelBuilder.Entity<SolicitudAutorizacion>().HasQueryFilter(x => !x.Deleted);
 
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
                 .SelectMany(t => t.GetForeignKeys())

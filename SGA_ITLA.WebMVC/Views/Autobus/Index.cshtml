@@ -1,46 +1,59 @@
-@model IEnumerable<SGA_ITLA.Domain.Entities.Transporte.Autobus>
+@model IEnumerable<SGA_ITLA.WebMVC.Models.AutobusListItemVM>
 @{
     ViewData["Title"] = "Catálogo de Autobuses";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Catálogo de Flota</h3>
+<div class="container">
+    <div class="enterprise-wrap">
+        <div class="corp-header">
+            <div>
+                <h3 class="corp-title">Catálogo de Flota</h3>
+                <p class="corp-subtitle">Gestión de unidades y estado operativo</p>
+            </div>
+            <div>
+                @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
+                {
+                    <a asp-action="Create" class="btn-primary-corp"><i class="bi bi-plus-lg me-1"></i> Registrar Autobús</a>
+                }
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="corp-table">
+                <thead>
+                    <tr>
+                        <th>Placa</th>
+                        <th>Capacidad Máxima</th>
+                        <th>Estado Operativo</th>
+                        <th>Chofer Asignado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="font-weight: 600; color: #1f2937;"><i class="bi bi-bus-front me-2 text-secondary"></i>@item.Placa</td>
+                            <td>@item.CapacidadMaxima pasajeros</td>
+                            <td>
+                                <!-- 🔥 CORRECCIÓN CS0019: Uso correcto del Enum en lugar del String -->
+                                <span class="status-badge @(item.EstadoOperativo == SGA_ITLA.Domain.Enums.EstadoAutobus.Activo ? "status-active" : "status-suspended")">
+                                    @item.EstadoOperativo
+                                </span>
+                            </td>
+                            <td style="font-weight: 600; color: #059669;">@(item.ChoferAsignado ?? "Sin asignar")</td>
+                            <td style="text-align: right;">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="action-link"><i class="bi bi-eye"></i> Detalles</a>
 
-        <!-- REGLA DEL AUDIO: SOLO EL ADMIN VE EL BOTON DE CREAR -->
-        @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
-        {
-            <a asp-action="Create" class="btn btn-primary">+ Registrar Autobús</a>
-        }
+                                @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="action-link"><i class="bi bi-pencil-square"></i> Editar</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="action-link action-link-danger"><i class="bi bi-trash3-fill"></i> Eliminar</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Placa</th>
-                <th>Capacidad Máxima</th>
-                <th>Estado Operativo</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Placa</td>
-                    <td>@item.CapacidadMaxima pasajeros</td>
-                    <td>@item.EstadoOperativo</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Detalles</a>
-
-                        @if (User.IsInRole("AdminTransporte") || User.IsInRole("Administrador"))
-                        {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
 </div>

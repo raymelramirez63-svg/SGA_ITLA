@@ -12,5 +12,11 @@ namespace SGA_ITLA.Domain.Interfaces
         Task<bool> ExisteConflictoDeRecursosAsync(int autobusId, int conductorId, DateTime fechaPlanificada);
         Task<IEnumerable<Viaje>> ObtenerViajesDelDiaAsync(DateTime fecha);
         Task<IEnumerable<Viaje>> ObtenerViajesPorConductorAsync(int conductorId);
+
+        Task<bool> AutobusTieneViajeActivoAsync(int autobusId, DateTime fechaPlanificada);
+        Task<bool> ConductorTieneViajeActivoAsync(int conductorId, DateTime fechaPlanificada);
+
+        Task<bool> RutaTieneViajesActivosAsync(int rutaId);
+        Task<bool> ConductorTieneViajesActivosGlobalAsync(int conductorId);
     }
 }

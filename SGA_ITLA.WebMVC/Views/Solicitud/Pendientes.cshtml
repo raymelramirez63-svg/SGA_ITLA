@@ -1,0 +1,50 @@
+﻿@model IEnumerable<SGA_ITLA.Domain.Entities.Autorizaciones.SolicitudAutorizacion>
+@{ ViewData["Title"] = "Solicitudes Pendientes"; }
+<div class="container mt-4">
+    <h3 class="fw-bold text-info">Solicitudes Pendientes de Aprobación</h3>
+    <hr />
+    <table class="table table-hover shadow-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Usuario</th>
+                <th>Tipo Solicitado</th>
+                <th>Comentario</th>
+                <th class="text-center">Acciones de Aprobación/Rechazo</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@(s.Usuario?.NombreCompleto ?? $"#{s.UsuarioId}")</td>
+                    <td><span class="badge bg-secondary">@s.TipoSolicitado</span></td>
+                    <td>@s.Comentario</td>
+                    <td class="text-center">
+                        <form asp-action="Aprobar" method="post" class="d-inline border-end pe-2 me-2">
+                            <input type="hidden" name="id" value="@s.Id" />
+                            <input type="number" name="pagoId" placeholder="ID Recibo" class="form-control form-control-sm d-inline w-auto mb-1" required />
+                            @if (s.TipoSolicitado == SGA_ITLA.Domain.Enums.TipoAutorizacion.TarjetaRecargable)
+                            {
+                                <input type="number" step="0.01" name="monto" placeholder="Monto RD$" class="form-control form-control-sm d-inline w-auto mb-1" required />
+                            }
+                            <button type="submit" class="btn btn-sm btn-success fw-bold">Aprobar</button>
+                        </form>
+                        
+                        <form asp-action="Rechazar" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@s.Id" />
+                            <input type="text" name="motivo" placeholder="Motivo rechazo" class="form-control form-control-sm d-inline w-auto mb-1" required />
+                            <button type="submit" class="btn btn-sm btn-danger fw-bold">Rechazar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="4" class="text-center text-muted">No hay solicitudes pendientes en este momento.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

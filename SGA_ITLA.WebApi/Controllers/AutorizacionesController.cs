@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SGA_ITLA.Application.Dtos.Autorizaciones;
 using SGA_ITLA.Application.Interfaces.Autorizaciones;
-using SGA_ITLA.Infraestructure.Context;
+using SGA_ITLA.Domain.Interfaces; 
 using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebApi.Controllers
@@ -14,12 +13,12 @@ namespace SGA_ITLA.WebApi.Controllers
     public class AutorizacionesController : ControllerBase
     {
         private readonly IAutorizacionService _autorizacionService;
-        private readonly SgaContext _context;
+        private readonly IUsuarioRepository _usuarioRepository; 
 
-        public AutorizacionesController(IAutorizacionService autorizacionService, SgaContext context)
+        public AutorizacionesController(IAutorizacionService autorizacionService, IUsuarioRepository usuarioRepository)
         {
             _autorizacionService = autorizacionService;
-            _context = context;
+            _usuarioRepository = usuarioRepository;
         }
 
         [HttpPost("EmitirTicket")]
@@ -41,12 +40,11 @@ namespace SGA_ITLA.WebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.IdentificacionInstitucional == request.IdentificacionInstitucional);
+            var usuario = await _usuarioRepository.ObtenerPorIdentificacionAsync(request.IdentificacionInstitucional);
 
             if (usuario == null)
             {
-                return BadRequest(new { success = false, message = $"Error: No existe ningún usuario registrado con la identificación '{request.IdentificacionInstitucional}'." });
+                return BadRequest(new { success = false, message = $"Error: No existe ningún usuario activo registrado con la identificación '{request.IdentificacionInstitucional}'." });
             }
 
             var result = await _autorizacionService.RecargarTarjetaAsync(usuario.Id, request.Monto);

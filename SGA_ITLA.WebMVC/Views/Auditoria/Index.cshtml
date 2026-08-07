@@ -2,66 +2,65 @@
 @{
     ViewData["Title"] = "Auditoría del Sistema";
 }
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-        <div>
-            <h3 class="text-primary m-0 fw-bold">Reporte de Auditoría y Trazabilidad</h3>
-            <p class="text-muted small">Registro inmutable de transacciones (Regla RN-AUD)</p>
+<div class="container">
+    <div class="enterprise-wrap">
+        <div class="corp-header">
+            <div>
+                <h3 class="corp-title">Reporte de Auditoría y Trazabilidad</h3>
+                <p class="corp-subtitle">Registro inmutable de transacciones (Regla RN-AUD)</p>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="corp-table">
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Módulo</th>
+                        <th>Acción</th>
+                        <th>Actor (Usuario ID)</th>
+                        <th>Resultado</th>
+                        <th>Detalles / Motivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td style="color: #6b7280; font-weight: 500;">@item.CreationDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td><span class="type-badge bg-secondary text-white">@item.ModuloAfectado</span></td>
+                                <td style="font-weight: 600; color: #1f2937;">@item.AccionRealizada</td>
+                                <td style="font-weight: 500;">#@item.ActorId</td>
+                                <td>
+                                    @if (item.ResultadoExitoso)
+                                    {
+                                        <span class="status-badge status-active"><i class="bi bi-check-circle-fill me-1"></i>Exitoso</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-suspended"><i class="bi bi-x-circle-fill me-1"></i>Rechazado</span>
+                                    }
+                                </td>
+                                <td style="font-size: 0.85rem; color: #4b5563;">
+                                    @if (item.ResultadoExitoso)
+                                    {
+                                        @item.Detalles
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #dc2626; font-weight: 600;">@item.MotivoFallo</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" style="text-align: center; padding: 3rem; color: #6b7280;">No hay registros de auditoría disponibles.</td></tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th class="ps-3">Fecha y Hora</th>
-                    <th>Módulo</th>
-                    <th>Acción</th>
-                    <th>Actor (Usuario ID)</th>
-                    <th>Resultado</th>
-                    <th class="pe-3">Detalles / Motivo</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var item in Model)
-                    {
-                        <tr>
-                            <td class="ps-3 text-muted fw-semibold">@item.CreationDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                            <td><span class="badge bg-secondary">@item.ModuloAfectado</span></td>
-                            <td class="fw-bold text-dark">@item.AccionRealizada</td>
-                            <td>#@item.ActorId</td>
-                            <td>
-                                @if (item.ResultadoExitoso)
-                                {
-                                    <span class="badge bg-success">Exitoso</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Rechazado</span>
-                                }
-                            </td>
-                            <td class="pe-3 text-muted small">
-                                @if (item.ResultadoExitoso)
-                                {
-                                    @item.Detalles
-                                }
-                                else
-                                {
-                                    <span class="text-danger fw-bold">@item.MotivoFallo</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr><td colspan="6" class="text-center py-4 text-muted">No hay registros de auditoría disponibles.</td></tr>
-                }
-            </tbody>
-        </table>
-    </div>
 </div>
-

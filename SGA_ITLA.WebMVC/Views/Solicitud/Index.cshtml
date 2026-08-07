@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SGA_ITLA.Domain.Entities.Autorizaciones.SolicitudAutorizacion>
+@{ ViewData["Title"] = "Mis Solicitudes"; }
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h3 class="fw-bold text-success">Mis Solicitudes de Pase</h3>
+        <a asp-action="Create" class="btn btn-success fw-bold">+ Nueva Solicitud</a>
+    </div>
+    <table class="table table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Tipo Solicitado</th>
+                <th>Comentario</th>
+                <th>Estado</th>
+                <th>Fecha de Petición</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td class="fw-bold">@s.TipoSolicitado</td>
+                    <td>@s.Comentario</td>
+                    <td>
+                        <span class="badge @(s.Estado == SGA_ITLA.Domain.Enums.EstadoSolicitud.Aprobada ? "bg-success" : s.Estado == SGA_ITLA.Domain.Enums.EstadoSolicitud.Rechazada ? "bg-danger" : "bg-warning text-dark")">
+                            @s.Estado
+                        </span>
+                        @if (s.Estado == SGA_ITLA.Domain.Enums.EstadoSolicitud.Rechazada)
+                        {
+                            <br /><small class="text-danger">Motivo: @s.MotivoRechazo</small>
+                        }
+                    </td>
+                    <td>@s.CreationDate.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="4" class="text-center text-muted">No has realizado ninguna solicitud.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

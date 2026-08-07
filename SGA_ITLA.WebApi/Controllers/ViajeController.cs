@@ -18,7 +18,7 @@ namespace SGA_ITLA.WebApi.Controllers
         private readonly IViajeService _viajeService;
         private readonly IHorarioRepository _horarioRepo;
         private readonly IViajeRepository _viajeRepo;
-        private readonly IAuditoriaRepository _auditoriaRepo; 
+        private readonly IAuditoriaRepository _auditoriaRepo;
 
         public ViajeController(IViajeService viajeService, IHorarioRepository horarioRepo, IViajeRepository viajeRepo, IAuditoriaRepository auditoriaRepo)
         {
@@ -88,7 +88,20 @@ namespace SGA_ITLA.WebApi.Controllers
             var originalResult = await _viajeRepo.GetByIdAsync(id);
             if (!originalResult.Success || originalResult.Data == null) return NotFound(new { success = false, message = "Viaje no encontrado." });
 
-            var result = await _viajeRepo.DeleteEntityAsync((Viaje)originalResult.Data);
+            var viaje = (Viaje)originalResult.Data;
+
+            // 🔥 VALIDACIÓN: No borrar viajes que están en curso o completados
+            if (viaje.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.EnCurso || viaje.Estado == SGA_ITLA.Domain.Enums.EstadoViaje.Completado)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    errorType = "EstadoInvalido",
+                    message = $"No se puede eliminar un viaje en estado '{viaje.Estado}'. Solo se pueden cancelar viajes en estado Programado."
+                });
+            }
+
+            var result = await _viajeRepo.DeleteEntityAsync(viaje);
             return Ok(result);
         }
 

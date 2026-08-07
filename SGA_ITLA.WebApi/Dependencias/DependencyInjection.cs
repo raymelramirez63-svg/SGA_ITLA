@@ -9,6 +9,7 @@ using SGA_ITLA.Application.Services.Autorizaciones;
 using SGA_ITLA.Domain.Interfaces;
 using SGA_ITLA.Infraestructure.Context;
 using SGA_ITLA.Infraestructure.Repositories;
+using SGA_ITLA.Application.Services.AutorizacionService;
 
 namespace SGA_ITLA.WebApi.Dependencias
 {
@@ -16,10 +17,8 @@ namespace SGA_ITLA.WebApi.Dependencias
     {
         public static IServiceCollection AddSgaDependencies(this IServiceCollection services, string connectionString)
         {
-
             services.AddDbContext<SgaContext>(options =>
                 options.UseSqlServer(connectionString));
-
 
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IAutorizacionRepository, AutorizacionRepository>();
@@ -27,14 +26,16 @@ namespace SGA_ITLA.WebApi.Dependencias
             services.AddScoped<IRutaRepository, RutaRepository>();
             services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
             services.AddScoped<IViajeRepository, ViajeRepository>();
-
             services.AddScoped<IHorarioRepository, HorarioRepository>();
 
+            services.AddScoped<ISolicitudAutorizacionRepository, SolicitudAutorizacionRepository>();
 
             services.AddScoped<ICatalogoService, CatalogoService>();
             services.AddScoped<IViajeService, ViajeService>();
             services.AddScoped<IAccesoService, AccesoService>();
             services.AddScoped<IAutorizacionService, AutorizacionService>();
+
+            services.AddScoped<ISolicitudService, SolicitudService>();
 
             return services;
         }

@@ -16,6 +16,7 @@ namespace SGA_ITLA.Infraestructure.Repositories
     {
         public ViajeRepository(SgaContext context) : base(context) { }
 
+
         public async Task<OperationResult> GetViajesDetalladosAsync()
         {
             var result = new OperationResult();
@@ -55,6 +56,37 @@ namespace SGA_ITLA.Infraestructure.Repositories
                 .Where(v => v.ConductorId == conductorId &&
                            (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso))
                 .ToListAsync();
+        }
+
+
+        public async Task<bool> AutobusTieneViajeActivoAsync(int autobusId, DateTime fechaPlanificada)
+        {
+            return await _context.Viajes.AnyAsync(v =>
+                v.AutobusId == autobusId &&
+                v.HorarioSalidaPlanificada.Date == fechaPlanificada.Date &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso));
+        }
+
+        public async Task<bool> ConductorTieneViajeActivoAsync(int conductorId, DateTime fechaPlanificada)
+        {
+            return await _context.Viajes.AnyAsync(v =>
+                v.ConductorId == conductorId &&
+                v.HorarioSalidaPlanificada.Date == fechaPlanificada.Date &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso));
+        }
+
+        public async Task<bool> RutaTieneViajesActivosAsync(int rutaId)
+        {
+            return await _context.Viajes.AnyAsync(v =>
+                v.RutaId == rutaId &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso));
+        }
+
+        public async Task<bool> ConductorTieneViajesActivosGlobalAsync(int conductorId)
+        {
+            return await _context.Viajes.AnyAsync(v =>
+                v.ConductorId == conductorId &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso));
         }
     }
 }

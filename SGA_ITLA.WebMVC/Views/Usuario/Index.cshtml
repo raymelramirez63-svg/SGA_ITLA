@@ -2,47 +2,52 @@
 @{
     ViewData["Title"] = "Directorio de Usuarios";
 }
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-        <h3 class="text-primary m-0 fw-bold">Directorio Institucional (Usuarios y Roles)</h3>
-        <a asp-action="Create" class="btn btn-primary px-4 fw-bold">+ Registrar Cuenta</a>
-    </div>
-
-    <table class="table table-hover align-middle shadow-sm rounded-3 overflow-hidden">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nombre Completo</th>
-                <th>Correo Institucional</th>
-                <th>Rol Asignado</th>
-                <th class="text-end pe-3">Gestión</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                foreach (var item in Model)
-                {
+<div class="container">
+    <div class="enterprise-wrap">
+        <div class="corp-header">
+            <div>
+                <h3 class="corp-title">Directorio Institucional</h3>
+                <p class="corp-subtitle">Gestión de Usuarios y Roles</p>
+            </div>
+            <div>
+                <a asp-action="Create" class="btn-primary-corp"><i class="bi bi-person-plus-fill me-1"></i> Registrar Cuenta</a>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="corp-table">
+                <thead>
                     <tr>
-                        <td class="fw-bold">#@item.Id</td>
-                        <td class="fw-semibold">@item.NombreCompleto</td>
-                        <td>@item.Email</td> 
-                        <td>
-                            <span class="badge bg-secondary fs-6">@item.Rol</span>
-                        </td>
-                        <td class="text-end pe-3">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Perfil</a>
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Suspender</a>
-                        </td>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo Institucional</th>
+                        <th>Rol Asignado</th>
+                        <th style="text-align: right;">Gestión</th>
                     </tr>
-                }
-            }
-            else
-            {
-                <tr><td colspan="5" class="text-center py-4 text-muted">No hay cuentas registradas.</td></tr>
-            }
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td style="font-weight: 600; color: #6b7280;">#@item.Id</td>
+                                <td style="font-weight: 600; color: #1f2937;"><i class="bi bi-person-circle me-2 text-secondary"></i>@item.NombreCompleto</td>
+                                <td>@item.Email</td>
+                                <td><span class="type-badge">@item.Rol</span></td>
+                                <td style="text-align: right;">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="action-link"><i class="bi bi-person-vcard"></i> Perfil</a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="action-link"><i class="bi bi-pencil-square"></i> Editar</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="action-link action-link-danger"><i class="bi bi-slash-circle"></i> Suspender</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" style="text-align: center; padding: 3rem; color: #6b7280;">No hay cuentas registradas.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

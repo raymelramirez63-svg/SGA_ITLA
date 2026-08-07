@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using SGA_ITLA.Infraestructure.Context;
+using SGA_ITLA.Application.Interfaces.Usuarios; 
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Domain.Enums;
+using SGA_ITLA.Domain.Interfaces; 
 
 namespace SGA_ITLA.WebApi.Controllers
 {
@@ -18,21 +18,20 @@ namespace SGA_ITLA.WebApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly SgaContext _context;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public AuthController(IConfiguration config, SgaContext context)
+        public AuthController(IConfiguration config, IUsuarioService usuarioService, IUsuarioRepository usuarioRepository)
         {
             _config = config;
-            _context = context;
+            _usuarioService = usuarioService;
+            _usuarioRepository = usuarioRepository;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto login)
         {
-            var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == login.Email &&
-                                          u.PasswordHash == login.Password &&
-                                          u.IsActive == true);
+            var usuario = await _usuarioService.ValidarCredencialesAsync(login.Email, login.Password);
 
             if (usuario != null)
             {
@@ -53,13 +52,13 @@ namespace SGA_ITLA.WebApi.Controllers
                     return BadRequest(new { success = false, message = "La Identificación Institucional es obligatoria." });
                 }
 
-                var existeEmail = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
-                if (existeEmail)
+                var usuarioExistente = await _usuarioRepository.GetByEmailAsync(dto.Email);
+                if (usuarioExistente != null)
                 {
                     return BadRequest(new { success = false, message = "El correo ya está registrado." });
                 }
 
-                var existeIdentificacion = await _context.Usuarios.AnyAsync(u => u.IdentificacionInstitucional == dto.IdentificacionInstitucional);
+                var existeIdentificacion = await _usuarioRepository.ExisteIdentificacionAsync(dto.IdentificacionInstitucional);
                 if (existeIdentificacion)
                 {
                     return BadRequest(new { success = false, message = $"La Identificación Institucional '{dto.IdentificacionInstitucional}' ya se encuentra registrada." });
@@ -75,8 +74,7 @@ namespace SGA_ITLA.WebApi.Controllers
                     IsActive = true
                 };
 
-                _context.Usuarios.Add(nuevoUsuario);
-                await _context.SaveChangesAsync();
+                await _usuarioRepository.SaveEntityAsync(nuevoUsuario);
 
                 return Ok(new { success = true, message = "Usuario registrado correctamente cumpliendo RF-USU-01." });
             }
@@ -123,3 +121,4 @@ namespace SGA_ITLA.WebApi.Controllers
         public RolUsuario Rol { get; set; }
     }
 }
+

@@ -18,5 +18,17 @@ namespace SGA_ITLA.Infraestructure.Repositories
             return await _context.Set<Usuario>()
                 .AnyAsync(u => u.IdentificacionInstitucional == identificacion);
         }
+
+        public async Task<Usuario> GetByEmailAsync(string email)
+        {
+            return await _context.Set<Usuario>()
+                .FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<Usuario?> ObtenerPorIdentificacionAsync(string identificacion)
+        {
+            return await _context.Set<Usuario>()
+                .FirstOrDefaultAsync(u => u.IdentificacionInstitucional == identificacion && u.IsActive == true);
+        }
     }
 }

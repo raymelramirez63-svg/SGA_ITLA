@@ -1,14 +1,15 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using SGA_ITLA.Infraestructure.Context;
-using SGA_ITLA.Application.Interfaces.Catalogo;
-using SGA_ITLA.Application.Services.Catalogo;
-using SGA_ITLA.Domain.Interfaces;
-using SGA_ITLA.Infraestructure.Repositories;
-using SGA_ITLA.Application.Interfaces.Transporte;
-using SGA_ITLA.Application.Services.Transporte;
+using Microsoft.EntityFrameworkCore;
 using SGA_ITLA.Application.Interfaces.Autorizaciones;
+using SGA_ITLA.Application.Interfaces.Catalogo;
+using SGA_ITLA.Application.Interfaces.Transporte;
 using SGA_ITLA.Application.Services.Autorizaciones;
+using SGA_ITLA.Application.Services.AutorizacionService;
+using SGA_ITLA.Application.Services.Catalogo;
+using SGA_ITLA.Application.Services.Transporte;
+using SGA_ITLA.Domain.Interfaces;
+using SGA_ITLA.Infraestructure.Context;
+using SGA_ITLA.Infraestructure.Repositories;
 using SGA_ITLA.WebMVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,20 +34,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthTokenHandler>();
 
 // 1. Cliente LIMPIO (Solo para el AuthApiService, no pide token)
-builder.Services.AddHttpClient("SgaApiClean", client =>
-{
+builder.Services.AddHttpClient("SgaApiClean", client => {
     client.BaseAddress = new Uri("https://localhost:7031/api/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-// 2. Cliente PROTEGIDO (Para el resto de servicios, inyecta el token automáticamente)
-builder.Services.AddHttpClient("SgaApi", client =>
-{
+builder.Services.AddHttpClient("SgaApi", client => {
     client.BaseAddress = new Uri("https://localhost:7031/api/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
-// Inyección de Servicios Cliente de la API
 builder.Services.AddScoped<IAuthApiService, AuthApiService>();
 builder.Services.AddScoped<ICatalogoApiService, CatalogoApiService>();
 builder.Services.AddScoped<ITransporteApiService, TransporteApiService>();
@@ -58,10 +55,12 @@ builder.Services.AddScoped<IRutaRepository, RutaRepository>();
 builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
 builder.Services.AddScoped<IViajeRepository, ViajeRepository>();
 builder.Services.AddScoped<IHorarioRepository, HorarioRepository>();
+builder.Services.AddScoped<ISolicitudAutorizacionRepository, SolicitudAutorizacionRepository>();
 
 builder.Services.AddScoped<ICatalogoService, CatalogoService>();
 builder.Services.AddScoped<IViajeService, ViajeService>();
 builder.Services.AddScoped<IAutorizacionService, AutorizacionService>();
+builder.Services.AddScoped<ISolicitudService, SolicitudService>();
 
 var app = builder.Build();
 
@@ -74,10 +73,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

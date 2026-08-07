@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SGA_ITLA.Application.Interfaces.Catalogo;
 using SGA_ITLA.Application.Dtos.Catalogo;
+using SGA_ITLA.Application.Interfaces.Catalogo;
 using SGA_ITLA.Domain.Entities.Transporte;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Domain.Enums;
@@ -19,21 +19,23 @@ namespace SGA_ITLA.WebApi.Controllers
         private readonly IAutobusRepository _autobusRepo;
         private readonly IUsuarioRepository _usuarioRepo;
         private readonly IHorarioRepository _horarioRepo;
-        private readonly IRutaRepository _rutaRepo; 
+        private readonly IRutaRepository _rutaRepo;
+        private readonly IViajeRepository _viajeRepo;
 
-        // Se inyectan los repositorios para poder hacer consultas a la base de datos
         public CatalogoController(
             ICatalogoService service,
             IAutobusRepository autobusRepo,
             IUsuarioRepository usuarioRepo,
             IHorarioRepository horarioRepo,
-            IRutaRepository rutaRepo) 
+            IRutaRepository rutaRepo,
+            IViajeRepository viajeRepo)
         {
             _service = service;
             _autobusRepo = autobusRepo;
             _usuarioRepo = usuarioRepo;
             _horarioRepo = horarioRepo;
             _rutaRepo = rutaRepo;
+            _viajeRepo = viajeRepo;
         }
 
         [HttpPost("autobus")]
@@ -98,7 +100,6 @@ namespace SGA_ITLA.WebApi.Controllers
         [HttpGet("rutas")]
         public async Task<IActionResult> GetRutas() => Ok(await _service.ObtenerRutasAsync());
 
-
         [HttpGet("autobuses")]
         public async Task<IActionResult> GetAutobuses()
         {
@@ -149,8 +150,6 @@ namespace SGA_ITLA.WebApi.Controllers
             return Ok(result);
         }
 
-      
-
         [HttpPut("autobus")]
         public async Task<IActionResult> ActualizarAutobus([FromBody] Autobus autobus)
         {
@@ -198,10 +197,24 @@ namespace SGA_ITLA.WebApi.Controllers
         [HttpDelete("ruta/{id}")]
         public async Task<IActionResult> EliminarRuta(int id)
         {
-            if (id <= 0) return BadRequest(new { success = false, message = "ID inválido." });
+            if (id <= 0)
+                return BadRequest(new { success = false, errorType = "ValidationError", message = "ID inválido." });
 
             var originalResult = await _rutaRepo.GetByIdAsync(id);
-            if (!originalResult.Success || originalResult.Data == null) return NotFound(new { success = false, message = "Ruta no encontrada." });
+            if (!originalResult.Success || originalResult.Data == null)
+                return NotFound(new { success = false, errorType = "NotFound", message = "Ruta no encontrada." });
+
+            bool tieneViajesActivos = await _viajeRepo.RutaTieneViajesActivosAsync(id);
+
+            if (tieneViajesActivos)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    errorType = "DependencyConflict",
+                    message = "No se puede eliminar la ruta: tiene viajes asociados programados o en curso."
+                });
+            }
 
             var result = await _rutaRepo.DeleteEntityAsync((originalResult.Data as Ruta)!);
             return Ok(result);

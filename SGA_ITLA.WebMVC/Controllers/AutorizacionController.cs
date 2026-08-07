@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace SGA_ITLA.WebMVC.Controllers
 {
-    [Authorize(Roles = "AdminAutorizaciones,Administrador")]
+    // 🔥 PERMISOS AÑADIDOS PARA AUDITOR
+    [Authorize(Roles = "AdminAutorizaciones,Administrador,Auditor")]
     public class AutorizacionController : Controller
     {
         private readonly IAutorizacionService _autorizacionService;
         private readonly IAutorizacionRepository _autorizacionRepository;
         private readonly IUsuarioRepository _usuarioRepository;
 
-        // Inyección In-Process (Cero Web API)
         public AutorizacionController(
             IAutorizacionService autorizacionService,
             IAutorizacionRepository autorizacionRepository,
@@ -31,7 +31,6 @@ namespace SGA_ITLA.WebMVC.Controllers
             _usuarioRepository = usuarioRepository;
         }
 
-        // 1. VISTA: INDEX (Listado de Autorizaciones)
         public async Task<IActionResult> Index()
         {
             var result = await _autorizacionRepository.GetAllAsync();
@@ -39,7 +38,7 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(lista);
         }
 
-        // 2. VISTA: CREATE (Emitir Ticket Mensual)
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Create()
         {
             await CargarUsuariosViewBag();
@@ -48,6 +47,7 @@ namespace SGA_ITLA.WebMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Create(EmitirTicketDto dto)
         {
             if (!ModelState.IsValid)
@@ -56,7 +56,6 @@ namespace SGA_ITLA.WebMVC.Controllers
                 return View(dto);
             }
 
-            // Llamada directa al servicio de Aplicación 
             var result = await _autorizacionService.EmitirTicketMensualAsync(dto.UsuarioId, dto.PagoId, dto.FechaInicio);
 
             if (result.Success) return RedirectToAction(nameof(Index));
@@ -66,7 +65,6 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(dto);
         }
 
-        // 3. VISTA: DETAILS (Ver Estado de la Tarjeta/Ticket)
         public async Task<IActionResult> Details(int id)
         {
             var result = await _autorizacionRepository.GetByIdAsync(id);
@@ -75,7 +73,7 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(result.Data as Autorizacion);
         }
 
-        // 4. VISTA: EDIT (Modificar saldo o estado activo)
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Edit(int id)
         {
             var result = await _autorizacionRepository.GetByIdAsync(id);
@@ -87,6 +85,7 @@ namespace SGA_ITLA.WebMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Edit(Autorizacion modelo)
         {
             ModelState.Remove("CreationDate");
@@ -117,7 +116,7 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(modelo);
         }
 
-        // 5. VISTA: DELETE
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _autorizacionRepository.GetByIdAsync(id);
@@ -128,6 +127,7 @@ namespace SGA_ITLA.WebMVC.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var originalResult = await _autorizacionRepository.GetByIdAsync(id);
@@ -141,8 +141,8 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View((originalResult.Data as Autorizacion)!);
         }
 
-        // 6. NUEVA VISTA: RECARGAR TARJETA (Maneja la UI y Guarda en BD)
         [HttpGet]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public IActionResult Recargar()
         {
             return View();
@@ -150,19 +150,17 @@ namespace SGA_ITLA.WebMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "AdminAutorizaciones,Administrador")]
         public async Task<IActionResult> Recargar(RecargarTarjetaDto dto)
         {
-            // Validaciones Frontend/Backend (DTO)
             if (!ModelState.IsValid)
             {
                 return View(dto);
             }
 
-            // 1. Buscam al usuario en la base de datos usando la Matrícula que digitó
             var resultUsuarios = await _usuarioRepository.GetAllAsync();
             var usuarios = resultUsuarios.Data as IEnumerable<Usuario> ?? new List<Usuario>();
 
-            // Compara la identificación del DTO con la de la entidad Usuario
             var usuario = usuarios.FirstOrDefault(u => u.IdentificacionInstitucional == dto.IdentificacionInstitucional);
 
             if (usuario == null)
@@ -182,7 +180,6 @@ namespace SGA_ITLA.WebMVC.Controllers
             return View(dto);
         }
 
-        // METODO AUXILIAR
         private async Task CargarUsuariosViewBag()
         {
             var result = await _usuarioRepository.GetAllAsync();
@@ -192,8 +189,3 @@ namespace SGA_ITLA.WebMVC.Controllers
         }
     }
 }
-
-
-
-
-

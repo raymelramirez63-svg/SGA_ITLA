@@ -1,0 +1,24 @@
+﻿@model SGA_ITLA.Domain.Entities.Autorizaciones.SolicitudAutorizacion
+@{ ViewData["Title"] = "Solicitar Autorización"; }
+<div class="container mt-5">
+    <h3 class="text-success fw-bold">Solicitar Ticket o Tarjeta</h3>
+    <hr />
+    <div class="card shadow-sm p-4" style="max-width:500px;">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tipo de Autorización</label>
+                <select name="tipoSolicitado" class="form-select">
+                    <option value="TicketMensual">Ticket Mensual</option>
+                    <option value="TarjetaRecargable">Tarjeta Recargable</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Comentario (opcional)</label>
+                <textarea name="comentario" class="form-control"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100 fw-bold">Enviar Solicitud</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+        </form>
+    </div>
+</div>

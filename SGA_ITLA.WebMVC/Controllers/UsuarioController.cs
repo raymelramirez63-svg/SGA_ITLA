@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using SGA_ITLA.Domain.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SGA_ITLA.Domain.Entities.Usuarios;
 using SGA_ITLA.Domain.Enums;
+using SGA_ITLA.Domain.Interfaces;
+using SGA_ITLA.Infraestructure.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,10 +13,12 @@ namespace SGA_ITLA.WebMVC.Controllers
     public class UsuarioController : Controller
     {
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IViajeRepository _viajeRepo; 
 
-        public UsuarioController(IUsuarioRepository usuarioRepository)
+        public UsuarioController(IUsuarioRepository usuarioRepository, IViajeRepository viajeRepo)
         {
             _usuarioRepository = usuarioRepository;
+            _viajeRepo = viajeRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -108,12 +111,25 @@ namespace SGA_ITLA.WebMVC.Controllers
             var originalResult = await _usuarioRepository.GetByIdAsync(id);
             if (!originalResult.Success || originalResult.Data == null) return NotFound();
 
-            var result = await _usuarioRepository.DeleteEntityAsync((originalResult.Data as Usuario)!);
+            var usuario = (originalResult.Data as Usuario)!;
+
+            if (usuario.Rol == RolUsuario.Conductor)
+            {
+                bool asignado = await _viajeRepo.ConductorTieneViajesActivosGlobalAsync(id);
+
+                if (asignado)
+                {
+                    ModelState.AddModelError("", "No se puede suspender este conductor: tiene viajes programados o en curso asignados.");
+                    return View(usuario);
+                }
+            }
+
+            var result = await _usuarioRepository.DeleteEntityAsync(usuario);
 
             if (result.Success) return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", result.Message);
-            return View((originalResult.Data as Usuario)!);
+            return View(usuario);
         }
     }
 }
